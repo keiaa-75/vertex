@@ -8,7 +8,7 @@ export default defineConfig({
   // No 'base' needed for lib pkg
   resolve: {
     alias: {
-      '@vertex/shared': path.resolve(__dirname, '.src/lib')
+      '@vertex/shared': path.resolve(__dirname, './src/lib')
     }
   },
   build: {
