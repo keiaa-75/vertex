@@ -7,9 +7,16 @@ export { auth, db } from './firebase';
 export { markViewed, markCompleted, getProgress } from './progress';
 export type { Progress } from './progress';
 
-// Stores
-export { userStore, logout, saveProfile } from './stores/user';
+// User and auth
+export {
+    userStore,
+    logout,
+    saveProfile,
+    loginWithGoogle,
+    handleRedirectResult
+} from './stores/user';
 export type { UserProfile, UserState } from './stores/user';
 
+// Curriculum
 export { curriculumStore, loadCurriculum, buildLessonMap } from './stores/curriculum';
 export type { CurriculumState, Topic, Lesson } from './stores/curriculum';
