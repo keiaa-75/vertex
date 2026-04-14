@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { userStore, curriculumStore, loadCurriculum, logout } from '@vertex/shared';
+  import ProfileForm from './ProfileForm.svelte';
 
   // Derive UI state from stores reactively
   let isLoading = $derived($userStore.loading || $curriculumStore.loading);
@@ -10,7 +11,7 @@
 
   // Load public curriculum on mount (no auth)
   onMount(() => {
-    loadCurriculum;
+    loadCurriculum();
   });
 </script>
 
@@ -41,8 +42,7 @@
       <h2>Complete Your Profile</h2>
       <p class="hint">Please provide your details to continue.</p>
 
-      <!-- TODO: Insert ProfileForm.svelte component here -->
-      <div class="form-placeholder">[Profile Form Component]</div>
+      <ProfileForm />
     </section>
   
   <!--- Authenticated Dashboard State -->
