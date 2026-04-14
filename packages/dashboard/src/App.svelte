@@ -141,7 +141,7 @@
     margin-bottom: 1.5rem;
   }
 
-  .form-placeholder, .placeholder-text {
+  .placeholder-text {
     padding: 2rem;
     border: 2px dashed #CBD5E1;
     border-radius: 12px;
