@@ -1,5 +1,12 @@
 import { writable } from 'svelte/store';
-import { onAuthStateChanged,signOut, type User } from 'firebase/auth';
+import { 
+    onAuthStateChanged,
+    signOut,
+    GoogleAuthProvider,
+    signInWithRedirect,
+    getRedirectResult,
+    type User
+} from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
@@ -50,6 +57,26 @@ onAuthStateChanged(auth, async (firebaseUser) => {
         set(initialState);
     }
 });
+
+// Triggers Google OAuth redirect
+export async function loginWithGoogle(): Promise<void> {
+    const provider = new GoogleAuthProvider();
+    await signInWithRedirect(auth, provider);
+}
+
+// Checks for OAuth completion/error after redirect
+export async function handleRedirectResult(): Promise<void> {
+    try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+            // onAuthStateChanged will fire automatically next
+            // automatically updates userStore
+            console.log('Auth redirect completed successfully');
+        }
+    } catch (error) {
+        console.error('Redirect sign-in failed:', error);
+    }
+}
 
 /**
  * Saves the onboarding profile to Firestore.

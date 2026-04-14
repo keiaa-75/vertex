@@ -1,6 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { userStore, curriculumStore, loadCurriculum, logout } from '@vertex/shared';
+  import { 
+    userStore,
+    curriculumStore,
+    loadCurriculum,
+    logout,
+    loginWithGoogle,
+    handleRedirectResult
+  } from '@vertex/shared';
   import ProfileForm from './ProfileForm.svelte';
 
   // Derive UI state from stores reactively
@@ -12,6 +19,7 @@
   // Load public curriculum on mount (no auth)
   onMount(() => {
     loadCurriculum();
+    handleRedirectResult();
   });
 </script>
 
@@ -30,8 +38,7 @@
       <h1>Vertex Dashboard</h1>
       <p>Sign in to access your lessons and track progress.</p>
 
-      <!-- TODO: Wire signInWithRedirect in next commit -->
-      <button class="btn btn-primary" onclick={() => window.location.reload()}>
+      <button class="btn btn-primary" onclick={loginWithGoogle}>
         Sign in with Google
       </button>
     </section>
