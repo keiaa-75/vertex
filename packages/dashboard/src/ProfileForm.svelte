@@ -65,6 +65,7 @@
             bind:value={studentNo}
             placeholder="e.g. 136883130441"
             required
+        />
     </div>
 
     <div class="field">
@@ -75,6 +76,7 @@
             bind:value={section}
             placeholder="e.g. STEM-A"
             required
+        />
     </div>
 
     <button type="submit" class="btn btn-primary" disabled={!isValid || isSubmitting}>
