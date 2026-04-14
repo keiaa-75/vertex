@@ -32,7 +32,7 @@ Together, this empowers educators to manage course structure static content visu
 
 ### Environment variables
 
-Create `.env.local` in the **root** of the monorepo:
+Create `.env.local` in **`packages/dashboard/`** (where the Vite config lives):
 
 ```env
 VITE_FIREBASE_API_KEY=your_api_key
@@ -42,6 +42,10 @@ VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 ```
+
+> **Note:** If you're using a monorepo workspace manager, you may also place `.env.local` in the root — just ensure it gets copied or symlinked into `packages/dashboard/` so Vite can load it.
+>
+> Also make sure your Firebase API key allows `http://localhost/*` as an HTTP referrer in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), otherwise local development will be blocked.
 
 ## Usage and license
 
