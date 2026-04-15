@@ -59,7 +59,12 @@ onAuthStateChanged(auth, async (firebaseUser) => {
         set({ firebaseUser, profile, loading: false, needsProfileSetup });
     } else {
         console.log('No user, setting initialState');
-        set(initialState);
+        set({
+            firebaseUser: null,
+            profile: null,
+            loading: false,
+            needsProfileSetup: false
+        });
     }
 });
 
