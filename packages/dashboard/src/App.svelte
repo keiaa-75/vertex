@@ -14,19 +14,31 @@
   let password = $state('');
   let authError = $state<string | null>(null);
   let isAuthenticating = $state(false);
+  let isSignupMode = $state(false);
 
   let isLoading = $derived($userStore.loading || $curriculumStore.loading);
   let isAuthenticated = $derived(!!$userStore.firebaseUser);
   let needsProfileSetup = $derived($userStore.needsProfileSetup);
   let profile = $derived($userStore.profile);
 
-  async function handleLogin(e: Event) {
+  function toggleMode() {
+    isSignupMode = !isSignupMode;
+    authError = null;
+    email = '';
+    password = '';
+  }
+
+  async function handleSubmit(e: Event) {
     e.preventDefault();
     authError = null;
     isAuthenticating = true;
 
     try {
-      await loginWithEmail(email.trim(), password);
+      if (isSignupMode) {
+        await registerUser(email.trim(), password);
+      } else {
+        await loginWithEmail(email.trim(), password);
+      }
     } catch (err: any) {
       authError = err.message?.replace('Firebase: ', '') || 'Login failed';
     } finally {
@@ -63,7 +75,7 @@
       <h1>Vertex Dashboard</h1>
       <p>Sign in to access your lessons and track progress.</p>
 
-      <form class="auth-form" onsubmit={handleLogin}>
+      <form class="auth-form" onsubmit={handleSubmit}>
         {#if authError}
           <div class="error-msg" role="alert">{authError}</div>
         {/if}
@@ -90,6 +102,7 @@
             required
             disabled={isAuthenticating}
           />
+          <span class="field-hint">Min. 6 chararacters</span>
         </div>
 
         <button
@@ -102,9 +115,9 @@
       </form>
 
       <p class="hint">
-        New user? 
-        <button type="button" class="link-btn">
-          Create account
+        {isSignupMode ? 'Already have an account? ' : 'New user? '}
+        <button type="button" class="link-btn" onclick={toggleMode}>
+          {isSignupMode ? 'Sign In' : 'Create Account'}
         </button>
       </p>
     </section>

@@ -39,6 +39,9 @@ export async function loginWithEmail(email: string, password: string): Promise<v
 
 // Email/password registration
 export async function registerUser(email: string, password: string): Promise<void> {
+    if (password.length < 6) throw new Error('Password must be at least 6 characters');
+
+    const { createUserWithEmailAndPassword } = await import ('firebase/auth');
     await createUserWithEmailAndPassword(auth, email, password);
 }
 
