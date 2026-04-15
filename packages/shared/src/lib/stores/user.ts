@@ -39,9 +39,13 @@ export const userStore = { subscribe };
  * Automatically restores session on iframe reload.
  */
 onAuthStateChanged(auth, async (firebaseUser) => {
+    console.log('Auth state changed:', firebaseUser?.uid ?? 'null');
+
     if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userSnap = await getDoc(userDocRef);
+
+        console.log('User doc exists:', userSnap.exists());
 
         let profile: UserProfile | null = null;
         let needsProfileSetup = false;
@@ -54,6 +58,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
 
         set({ firebaseUser, profile, loading: false, needsProfileSetup });
     } else {
+        console.log('No user, setting initialState');
         set(initialState);
     }
 });

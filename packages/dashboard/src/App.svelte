@@ -16,6 +16,17 @@
   let needsProfileSetup = $derived($userStore.needsProfileSetup);
   let profile = $derived($userStore.profile);
 
+  $effect(() => {
+    console.log('State Check:', {
+      userLoading: $userStore.loading,
+      userAuth: !!$userStore.firebaseUser,
+      needsProfile: $userStore.needsProfileSetup,
+      curriculumLoading: $curriculumStore.loading,
+      curriculumTopics: $curriculumStore.topics.length,
+      isLoading
+    });
+  });
+
   // Load public curriculum on mount (no auth)
   onMount(() => {
     loadCurriculum();

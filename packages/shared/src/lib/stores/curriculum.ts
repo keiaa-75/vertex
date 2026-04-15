@@ -35,12 +35,15 @@ export const curriculumStore = { subscribe };
  * Public rad, no auth guard required per security rules.
  */
 export async function loadCurriculum(): Promise<void> {
+    console.log('Curriculum: Starting fetch, setting loading=true');
     set({ ...initialState, loading: true });
 
     try {
         // Fetch topics ordered by display order
         const topicsRef = collection(db, 'curriculum', 'precalculus', 'topics');
         const topicsSnap = await getDocs(query(topicsRef, orderBy('order')));
+
+        console.log('Curriculum: Fetched', topicsSnap.size, 'topics');
 
         const topics: Topic[] = [];
 
@@ -76,6 +79,7 @@ export async function loadCurriculum(): Promise<void> {
             });
         }
 
+        console.log('Curriculum: Setting loading=false, topics=', topics.length);
         set({ topics, loading: false });
     } catch (err) {
         console.error('Failed to load curriculum:', err);
