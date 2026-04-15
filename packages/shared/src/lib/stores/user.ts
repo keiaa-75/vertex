@@ -1,18 +1,17 @@
 import { writable } from 'svelte/store';
-import { 
+import {
     onAuthStateChanged,
     signOut,
-    GoogleAuthProvider,
-    signInWithRedirect,
-    getRedirectResult,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
     type User
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 export interface UserProfile {
-    studentNo: string;
     fullName: string;
+    studentNo: string;
     section: string;
 }
 
@@ -28,24 +27,25 @@ const initialState: UserState = {
     profile: null,
     loading: true,
     needsProfileSetup: false
-};
+}
 
 const { subscribe, set, update } = writable<UserState>(initialState);
-
 export const userStore = { subscribe };
 
-/**
- * Listens to Firebase auth state changes.
- * Automatically restores session on iframe reload.
- */
-onAuthStateChanged(auth, async (firebaseUser) => {
-    console.log('Auth state changed:', firebaseUser?.uid ?? 'null');
+// Email and password login
+export async function loginWithEmail(email: string, password: string): Promise<void> {
+    await signInWithEmailAndPassword(auth, email, password);
+}
 
+// Email/password registration
+export async function registerUser(email: string, password: string): Promise<void> {
+    await createUserWithEmailAndPassword(auth, email, password);
+}
+
+onAuthStateChanged(auth, async (firebaseUser) => {
     if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userSnap = await getDoc(userDocRef);
-
-        console.log('User doc exists:', userSnap.exists());
 
         let profile: UserProfile | null = null;
         let needsProfileSetup = false;
@@ -56,9 +56,8 @@ onAuthStateChanged(auth, async (firebaseUser) => {
             needsProfileSetup = true;
         }
 
-        set({ firebaseUser, profile, loading: false, needsProfileSetup });
+        set ({ firebaseUser, profile, loading: false, needsProfileSetup });
     } else {
-        console.log('No user, setting initialState');
         set({
             firebaseUser: null,
             profile: null,
@@ -68,36 +67,12 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     }
 });
 
-// Triggers Google OAuth redirect
-export async function loginWithGoogle(): Promise<void> {
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
-}
-
-// Checks for OAuth completion/error after redirect
-export async function handleRedirectResult(): Promise<void> {
-    try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-            // onAuthStateChanged will fire automatically next
-            // automatically updates userStore
-            console.log('Auth redirect completed successfully');
-        }
-    } catch (error) {
-        console.error('Redirect sign-in failed:', error);
-    }
-}
-
-/**
- * Saves the onboarding profile to Firestore.
- */
 export async function saveProfile(profile: UserProfile): Promise<void> {
     const user = auth.currentUser;
     if (!user) throw new Error('User must be authenticated to save profile');
 
     await setDoc(doc(db, 'users', user.uid), profile);
 
-    // Update local store state without triggering re-fetch
     update(state => ({
         ...state,
         profile,
@@ -105,9 +80,6 @@ export async function saveProfile(profile: UserProfile): Promise<void> {
     }));
 }
 
-/**
- * Clears Firebase session and resets store.
- */
 export async function logout(): Promise<void> {
     await signOut(auth);
 }

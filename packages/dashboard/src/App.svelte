@@ -1,20 +1,38 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { 
+  import {
     userStore,
     curriculumStore,
     loadCurriculum,
     logout,
-    loginWithGoogle,
-    handleRedirectResult
+    loginWithEmail,
+    registerUser
   } from '@vertex/shared';
-  import ProfileForm from './ProfileForm.svelte';
+  import ProfileForm from "./ProfileForm.svelte";
 
-  // Derive UI state from stores reactively
+  let email = $state('');
+  let password = $state('');
+  let authError = $state<string | null>(null);
+  let isAuthenticating = $state(false);
+
   let isLoading = $derived($userStore.loading || $curriculumStore.loading);
   let isAuthenticated = $derived(!!$userStore.firebaseUser);
   let needsProfileSetup = $derived($userStore.needsProfileSetup);
   let profile = $derived($userStore.profile);
+
+  async function handleLogin(e: Event) {
+    e.preventDefault();
+    authError = null;
+    isAuthenticating = true;
+
+    try {
+      await loginWithEmail(email.trim(), password);
+    } catch (err: any) {
+      authError = err.message?.replace('Firebase: ', '') || 'Login failed';
+    } finally {
+      isAuthenticating = false;
+    }
+  }
 
   $effect(() => {
     console.log('State Check:', {
@@ -27,43 +45,77 @@
     });
   });
 
-  // Load public curriculum on mount (no auth)
   onMount(() => {
     loadCurriculum();
-    handleRedirectResult();
   });
 </script>
 
 <main class="vertex-app">
-  <!-- Loading State -->
   {#if isLoading}
     <section class="screen loading-screen">
       <div class="spinner"></div>
       <p>Loading Vertex...</p>
     </section>
 
-  <!-- Unauthenticated State -->
   {:else if !isAuthenticated}
     <section class="screen auth-screen">
       <div class="logo-placeholder">Vertex</div>
       <h1>Vertex Dashboard</h1>
       <p>Sign in to access your lessons and track progress.</p>
 
-      <button class="btn btn-primary" onclick={loginWithGoogle}>
-        Sign in with Google
-      </button>
+      <form class="auth-form" onsubmit={handleLogin}>
+        {#if authError}
+          <div class="error-msg" role="alert">{authError}</div>
+        {/if}
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            bind:value={email}
+            placeholder="john.doe@email.com"
+            required
+            disabled={isAuthenticating}
+          />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            bind:value={password}
+            placeholder="********"
+            required
+            disabled={isAuthenticating}
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          disabled={!email || !password || isAuthenticating}
+        >
+          {isAuthenticating ? 'Signing in...' : 'Sign In'}
+        </button>
+      </form>
+
+      <p class="hint">
+        New user? 
+        <button type="button" class="link-btn">
+          Create account
+        </button>
+      </p>
     </section>
 
-  <!-- Profile Completion State -->
   {:else if needsProfileSetup}
     <section class="screen profile-screen">
       <h2>Complete Your Profile</h2>
       <p class="hint">Please provide your details to continue.</p>
-
       <ProfileForm />
     </section>
-  
-  <!--- Authenticated Dashboard State -->
+
   {:else if profile}
     <section class="screen dashboard-screen">
       <header class="dash-header">
@@ -75,7 +127,6 @@
       </header>
 
       <nav class="curriculum-nav">
-        <!-- TODO: Insert Topic Accordion.svelte + LessonList.svelte here -->
         <p class="placeholder-text">Curriculum accordion and checklist will render here.</p>
       </nav>
     </section>
@@ -164,5 +215,65 @@
     border: 2px dashed #CBD5E1;
     border-radius: 12px;
     color: #94A3B8;
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  label {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+
+  input {
+    padding: 0.75rem;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15);
+  }
+
+  input:disabled {
+    background: #F1F5F9;
+    cursor: not-allowed;
+  }
+
+  .error-msg {
+    background: #FEF2F2;
+    color: #DC2626;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid #FECACA;
+  }
+
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .link-btn:hover {
+    text-decoration: underline;
   }
 </style>

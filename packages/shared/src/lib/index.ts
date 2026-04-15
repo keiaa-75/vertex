@@ -12,8 +12,8 @@ export {
     userStore,
     logout,
     saveProfile,
-    loginWithGoogle,
-    handleRedirectResult
+    loginWithEmail,
+    registerUser
 } from './stores/user';
 export type { UserProfile, UserState } from './stores/user';
 
