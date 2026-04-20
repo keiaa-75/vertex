@@ -1,32 +1,25 @@
 /* ========================
-   VERTEX DESIGN TOKENS (Material 3 Inspired)
+   VERTEX GLOBAL STYLES (MD3-Inspired)
    ======================== */
 :root {
-  /* Brand Palette → MD3 Semantic Mapping */
+  /* Brand → MD3 Semantic Mapping */
   --md-sys-color-primary: #1A4B84;
   --md-sys-color-on-primary: #FFFFFF;
   --md-sys-color-primary-container: #DCE5F5;
-
   --md-sys-color-secondary: #FFC857;
   --md-sys-color-on-secondary: #1A1A1A;
   --md-sys-color-secondary-container: #FFF0C0;
-
   --md-sys-color-tertiary: #00B4D8;
   --md-sys-color-on-tertiary: #FFFFFF;
   --md-sys-color-tertiary-container: #E6F7FA;
-
   --md-sys-color-error: #DC2626;
   --md-sys-color-on-error: #FFFFFF;
-
-  /* Surface & Background */
   --md-sys-color-background: #F8FAFC;
   --md-sys-color-on-background: #1E293B;
   --md-sys-color-surface: #FFFFFF;
   --md-sys-color-on-surface: #1E293B;
   --md-sys-color-surface-variant: #F1F5F9;
   --md-sys-color-on-surface-variant: #64748B;
-
-  /* Progress States */
   --md-sys-color-unviewed: #DC2626;
   --md-sys-color-viewed: #0284C7;
   --md-sys-color-completed: #059669;
@@ -43,7 +36,7 @@
   --md-sys-spacing-xl: 2rem;
   --md-sys-spacing-2xl: 3rem;
 
-  /* Shape (MD3 Corner Radius) */
+  /* Shape */
   --md-sys-shape-corner-small: 8px;
   --md-sys-shape-corner-medium: 12px;
   --md-sys-shape-corner-large: 16px;
@@ -56,26 +49,17 @@
   --md-sys-elevation-3: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
-/* ========================
-   BASE & RESET
-   ======================== */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
+/* Base & Reset */
+*, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: var(--md-sys-typescale-body);
-  background-color: var(--md-sys-color-background);
+  background: var(--md-sys-color-background);
   color: var(--md-sys-color-on-background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
-
-/* ========================
-   TYPOGRAPHY
-   ======================== */
 h1, h2, h3 {
   font-family: var(--md-sys-typescale-heading);
   color: var(--md-sys-color-primary);
@@ -87,9 +71,7 @@ h1 { font-size: 2rem; }
 h2 { font-size: 1.5rem; }
 h3 { font-size: 1.25rem; }
 
-/* ========================
-   LAYOUT & SCREENS
-   ======================== */
+/* Layout */
 .vertex-app {
   min-height: 100vh;
   display: flex;
@@ -97,26 +79,11 @@ h3 { font-size: 1.25rem; }
   justify-content: center;
   padding: var(--md-sys-spacing-xl) var(--md-sys-spacing-md);
 }
+.screen { width: 100%; }
+.screen-center { max-width: 480px; margin: auto; }
+.screen-dashboard { max-width: 960px; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-.screen {
-  width: 100%;
-}
-
-.screen-center {
-  max-width: 480px;
-  margin: auto;
-}
-
-.screen-dashboard {
-  max-width: 1100px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ========================
-   CARDS (MD3 Elevated/Flat)
-   ======================== */
+/* Cards */
 .card-elevated {
   background: var(--md-sys-color-surface);
   border-radius: var(--md-sys-shape-corner-extra-large);
@@ -124,18 +91,33 @@ h3 { font-size: 1.25rem; }
   padding: var(--md-sys-spacing-xl);
   border: 1px solid var(--md-sys-color-surface-variant);
 }
-
-.card-flat {
+.dashboard-card {
   background: var(--md-sys-color-surface);
   border-radius: var(--md-sys-shape-corner-large);
-  box-shadow: var(--md-sys-elevation-1);
-  padding: var(--md-sys-spacing-lg);
+  box-shadow: var(--md-sys-elevation-2);
   border: 1px solid var(--md-sys-color-surface-variant);
+  overflow: hidden;
+  width: 100%;
+  max-width: 800px;
 }
+.card-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+}
+.nav-brand {
+  font-family: var(--md-sys-typescale-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+  letter-spacing: -0.5px;
+}
+.nav-actions { display: flex; align-items: center; gap: var(--md-sys-spacing-sm); }
+.card-content { padding: var(--md-sys-spacing-md) 0; }
 
-/* ========================
-   FORMS & INPUTS (MD3 Outlined)
-   ======================== */
+/* Forms & Inputs */
 .auth-form, .profile-form {
   display: flex;
   flex-direction: column;
@@ -143,19 +125,8 @@ h3 { font-size: 1.25rem; }
   margin-top: var(--md-sys-spacing-lg);
   text-align: left;
 }
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--md-sys-spacing-xs);
-}
-
-label {
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface);
-  font-size: 0.85rem;
-}
-
+.field { display: flex; flex-direction: column; gap: var(--md-sys-spacing-xs); }
+label { font-weight: 600; color: var(--md-sys-color-on-surface); font-size: 0.85rem; }
 input {
   padding: 0.875rem 1rem;
   border: 1.5px solid var(--md-sys-color-surface-variant);
@@ -164,138 +135,102 @@ input {
   background: transparent;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-
-input:focus {
-  outline: none;
-  border-color: var(--md-sys-color-tertiary);
-  box-shadow: 0 0 0 4px var(--md-sys-color-tertiary-container);
-}
-
-input:disabled {
-  background: var(--md-sys-color-surface-variant);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.field-hint {
-  font-size: 0.8rem;
-  color: var(--md-sys-color-on-surface-variant);
-  margin-top: -0.1rem;
-}
-
+input:focus { outline: none; border-color: var(--md-sys-color-tertiary); box-shadow: 0 0 0 4px var(--md-sys-color-tertiary-container); }
+input:disabled { background: var(--md-sys-color-surface-variant); cursor: not-allowed; opacity: 0.7; }
+.field-hint { font-size: 0.8rem; color: var(--md-sys-color-on-surface-variant); margin-top: -0.1rem; }
 .error-msg {
-  background: #FEF2F2;
-  color: #991B1B;
-  padding: var(--md-sys-spacing-sm) var(--md-sys-spacing-md);
-  border-radius: var(--md-sys-shape-corner-small);
-  font-size: 0.85rem;
-  border: 1px solid #FECACA;
+  background: #FEF2F2; color: #991B1B; padding: var(--md-sys-spacing-sm) var(--md-sys-spacing-md);
+  border-radius: var(--md-sys-shape-corner-small); font-size: 0.85rem; border: 1px solid #FECACA;
 }
 
-/* ========================
-   BUTTONS (MD3 Filled/Tonal/Text)
-   ======================== */
+/* Buttons */
 .btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: var(--md-sys-shape-corner-full);
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s;
-  font-size: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--md-sys-spacing-sm);
+  padding: 0.75rem 1.5rem; border: none; border-radius: var(--md-sys-shape-corner-full);
+  font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.2s, background-color 0.2s;
+  font-size: 0.95rem; display: inline-flex; align-items: center; justify-content: center; gap: var(--md-sys-spacing-sm);
   font-family: var(--md-sys-typescale-body);
 }
-
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-.btn-filled {
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  box-shadow: var(--md-sys-elevation-1);
-}
+.btn-filled { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); box-shadow: var(--md-sys-elevation-1); }
 .btn-filled:hover:not(:disabled) { box-shadow: var(--md-sys-elevation-2); }
-
-.btn-tonal {
-  background: var(--md-sys-color-surface-variant);
-  color: var(--md-sys-color-on-surface);
-}
+.btn-tonal { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); }
 .btn-tonal:hover:not(:disabled) { background: #E2E8F0; }
-
-.btn-text {
-  background: none;
-  color: var(--md-sys-color-tertiary);
-  padding: 0.25rem 0.5rem;
-  margin: 0 -0.25rem;
-  line-height: 1.4;
-  vertical-align: baseline;
-}
+.btn-text { background: none; color: var(--md-sys-color-tertiary); padding: 0.25rem 0.5rem; margin: 0 -0.25rem; }
 .btn-text:hover { text-decoration: underline; }
+.icon-btn {
+  width: 40px; height: 40px; border: none; background: transparent; border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--md-sys-color-on-surface-variant); transition: background-color 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); }
+.icon-btn:active { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary); }
 
-/* ========================
-   DASHBOARD SPECIFIC
-   ======================== */
-.logo {
-  height: 48px;
-  width: auto;
-  margin-bottom: var(--md-sys-spacing-md);
-  display: block;
+/* MD3 List Patterns */
+.topic-list, .lesson-list { list-style: none; margin: 0; padding: 0; }
+.topic-list-item, .lesson-list-item {
+  width: 100%; display: flex; align-items: center; gap: var(--md-sys-spacing-md);
+  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg); background: transparent; border: none;
+  border-bottom: 1px solid var(--md-sys-color-surface-variant); cursor: pointer;
+  transition: background-color 0.15s; text-align: left; font-family: var(--md-sys-typescale-body);
+}
+.topic-list-item:last-child, .lesson-list-item:last-child { border-bottom: none; }
+.topic-list-item:hover, .lesson-list-item:hover { background: var(--md-sys-color-surface-variant); }
+.topic-list-item:focus-visible, .lesson-list-item:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+.lesson-list-item { padding-left: calc(var(--md-sys-spacing-lg) + 28px); } /* Indent lessons */
+
+.list-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+.list-headline { font-size: 1rem; font-weight: 500; color: var(--md-sys-color-on-surface); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-supporting-text { font-size: 0.8rem; color: var(--md-sys-color-on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-trailing { flex-shrink: 0; color: var(--md-sys-color-on-surface-variant); display: flex; align-items: center; }
+.lesson-count-badge {
+  font-size: 0.75rem; color: var(--md-sys-color-on-surface-variant); background: var(--md-sys-color-surface-variant);
+  padding: 0.2rem 0.5rem; border-radius: var(--md-sys-shape-corner-full); margin-right: var(--md-sys-spacing-sm);
 }
 
-.dash-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--md-sys-spacing-xl);
+/* Topic Detail Header */
+.topic-detail-header {
+  display: flex; align-items: center; gap: var(--md-sys-spacing-md);
+  padding: 0 var(--md-sys-spacing-lg) var(--md-sys-spacing-md); border-bottom: 1px solid var(--md-sys-color-surface-variant); margin-bottom: 0;
+}
+.back-btn {
+  width: 40px; height: 40px; border: none; background: transparent; border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--md-sys-color-on-surface); transition: background-color 0.15s;
+}
+.back-btn:hover { background: var(--md-sys-color-surface-variant); }
+.topic-detail-title { margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--md-sys-color-primary); }
+
+/* Progress Rings */
+.progress-ring-small { width: 40px; height: 40px; flex-shrink: 0; position: relative; }
+.progress-ring-small svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.progress-ring-small .ring-bg { fill: none; stroke: var(--md-sys-color-surface-variant); stroke-width: 3; }
+.progress-ring-small .ring-fill { fill: none; stroke: var(--md-sys-color-primary); stroke-width: 3; stroke-linecap: round; }
+.progress-ring-small .progress-text {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 600; color: var(--md-sys-color-on-surface);
 }
 
-.curriculum-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: var(--md-sys-spacing-lg);
+/* Status Icons & Material Symbols */
+.status-icon { color: var(--md-sys-color-tertiary); flex-shrink: 0; transition: color 0.2s; }
+.status-icon.material-symbols-outlined { font-size: 20px; }
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none; vertical-align: middle;
 }
 
-.placeholder-card {
-  grid-column: 1 / -1;
-  padding: var(--md-sys-spacing-2xl);
-  border: 2px dashed var(--md-sys-color-surface-variant);
-  border-radius: var(--md-sys-shape-corner-large);
-  color: var(--md-sys-color-on-surface-variant);
-  text-align: center;
-  background: var(--md-sys-color-surface);
-}
-
+/* Utilities & Misc */
+.hint { color: var(--md-sys-color-on-surface-variant); margin-top: 0.875rem; margin-bottom: 0; font-size: 0.875rem; line-height: 1.4; text-align: left; }
+.hint-center { text-align: center; }
+.meta { color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; display: block; margin-top: var(--md-sys-spacing-xs); }
+.logo { height: 48px; width: auto; margin-bottom: var(--md-sys-spacing-md); display: block; }
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--md-sys-color-primary);
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto var(--md-sys-spacing-md);
+  width: 32px; height: 32px; border: 3px solid var(--md-sys-color-primary); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto var(--md-sys-spacing-md);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.meta {
-  color: var(--md-sys-color-on-surface-variant);
-  font-size: 0.9rem;
-  display: block;
-  margin-top: var(--md-sys-spacing-xs);
-}
-
-.hint {
-  color: var(--md-sys-color-on-surface-variant);
-  margin-top: 0.875rem;
-  margin-bottom: 0;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  text-align: left;
-}
-
-.hint-center {
-  text-align: center;
+.placeholder-card {
+  padding: var(--md-sys-spacing-2xl); border: 2px dashed var(--md-sys-color-surface-variant);
+  border-radius: var(--md-sys-shape-corner-large); color: var(--md-sys-color-on-surface-variant);
+  text-align: center; background: var(--md-sys-color-surface); margin: var(--md-sys-spacing-lg);
 }

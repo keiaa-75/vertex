@@ -6,16 +6,21 @@
     loadCurriculum,
     logout,
     loginWithEmail,
-    registerUser
+    registerUser,
+    type Topic
   } from '@vertex/shared';
   import ProfileForm from "./ProfileForm.svelte";
-  import TopicAccordion from "./components/TopicAccordion.svelte"
+  import TopicList from "./components/TopicList.svelte";
+  import TopicDetailView from "./components/TopicDetailView.svelte";
 
   let email = $state('');
   let password = $state('');
   let authError = $state<string | null>(null);
   let isAuthenticating = $state(false);
   let isSignupMode = $state(false);
+
+  // View navigation state
+  let selectedTopic = $state<Topic | null>(null);
 
   let isLoading = $derived($userStore.loading || $curriculumStore.loading);
   let isAuthenticated = $derived(!!$userStore.firebaseUser);
@@ -67,11 +72,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </svelte:head>
 
 <main class="vertex-app">
   {#if isLoading}
-    <section class="screen screen-center card-elevated" style="text-align: center;">
+    <section class="screen screen-center card-elevated">
       <div class="spinner"></div>
       <p>Loading Vertex...</p>
     </section>
@@ -79,7 +85,7 @@
   {:else if !isAuthenticated}
     <section class="screen screen-center card-elevated">
       <h1>{isSignupMode ? "Create Account" : "Welcome Back"}</h1>
-      <p>{isSignupMode ? "Sign up to access your pre-calculus modules." : "Sign in to access your lessons."}</p>
+      <p class="hint">{isSignupMode ? "Sign up to access your pre-calculus modules." : "Sign in to access your lessons."}</p>
 
       <form class="auth-form" onsubmit={handleSubmit}>
         {#if authError}
@@ -88,37 +94,17 @@
 
         <div class="field">
           <label for="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            bind:value={email}
-            placeholder="john.doe@email.com"
-            autocomplete="username"
-            required
-            disabled={isAuthenticating}
-          />
+          <input id="email" type="email" bind:value={email} placeholder="john.doe@email.com" autocomplete="username" required disabled={isAuthenticating} />
         </div>
 
         <div class="field">
           <label for="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            bind:value={password}
-            placeholder="********"
-            autocomplete="current-password"
-            required
-            disabled={isAuthenticating}
-          />
+          <input id="password" type="password" bind:value={password} placeholder="********" autocomplete="current-password" required disabled={isAuthenticating} />
           <span class="field-hint">Min. 6 characters</span>
         </div>
 
-        <button
-          type="submit"
-          class="btn btn-filled"
-          disabled={!email || !password || isAuthenticating}
-        >
-          {isAuthenticating ? 'Processing...' : (isSignupMode ? 'Sign Up' : 'Sign In')}
+        <button type="submit" class="btn btn-filled" disabled={!email || !password || isAuthenticating}>
+          {isAuthenticating ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 
@@ -139,22 +125,34 @@
 
   {:else if profile}
     <section class="screen screen-dashboard">
-      <header class="dash-header card-flat">
-        <div class="user-info">
-          <h2>Welcome, {profile.fullName}</h2>
-          <span class="meta">{profile.studentNo} &bull; {profile.section}</span>
-        </div>
-        <button class="btn btn-tonal" onclick={logout}>Logout</button>
-      </header>
+      <div class="dashboard-card">
+        <!-- Compact Top Nav -->
+        <header class="card-nav">
+          <span class="nav-brand">Dash</span>
+          <div class="nav-actions">
+            <button class="icon-btn" aria-label="Profile">
+              <span class="material-symbols-outlined">person</span>
+            </button>
+            <button class="icon-btn" onclick={logout} aria-label="Logout">
+              <span class="material-symbols-outlined">logout</span>
+            </button>
+          </div>
+        </header>
 
-      <div class="curriculum-grid">
-        {#if $curriculumStore.topics.length > 0}
-          {#each $curriculumStore.topics as topic}
-            <TopicAccordion {topic} />
-          {/each}
-        {:else}
-          <div class="placeholder-card">No curriculum data found. Please check Firestore.</div>
-        {/if}
+        <!-- Dynamic Content Area -->
+        <div class="card-content">
+          {#if selectedTopic}
+            <TopicDetailView 
+              {selectedTopic} 
+              onBack={() => selectedTopic = null} 
+            />
+          {:else}
+            <TopicList 
+              topics={$curriculumStore.topics} 
+              onSelectTopic={(t) => selectedTopic = t} 
+            />
+          {/if}
+        </div>
       </div>
     </section>
   {/if}
