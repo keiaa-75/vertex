@@ -229,6 +229,10 @@ input:disabled {
 .btn-text {
   background: none;
   color: var(--md-sys-color-tertiary);
+  padding: 0.25rem 0.5rem;
+  margin: 0 -0.25rem;
+  line-height: 1.4;
+  vertical-align: baseline;
 }
 .btn-text:hover { text-decoration: underline; }
 
@@ -285,6 +289,9 @@ input:disabled {
 
 .hint {
   color: var(--md-sys-color-on-surface-variant);
-  margin: var(--md-sys-spacing-lg) 0;
-  font-size: 0.9rem;
+  margin-top: 0.875rem;
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: center;
 }

@@ -78,7 +78,6 @@
 
   {:else if !isAuthenticated}
     <section class="screen screen-center card-elevated">
-      <img src="/vertex-logo.svg" alt="Vertex Logo" class="logo" />
       <h1>{isSignupMode ? "Create Account" : "Welcome Back"}</h1>
       <p>{isSignupMode ? "Sign up to access your pre-calculus modules." : "Sign in to access your lessons."}</p>
 
@@ -119,7 +118,7 @@
           class="btn btn-filled"
           disabled={!email || !password || isAuthenticating}
         >
-          {isAuthenticating ? 'Signing in...' : 'Sign In'}
+          {isAuthenticating ? 'Processing...' : (isSignupMode ? 'Sign Up' : 'Sign In')}
         </button>
       </form>
 
