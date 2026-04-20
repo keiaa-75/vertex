@@ -122,7 +122,7 @@
         </button>
       </form>
 
-      <p class="hint" style="text-align: center;">
+      <p class="hint hint-center">
         {isSignupMode ? 'Already have an account? ' : 'New user? '}
         <button type="button" class="btn btn-text" onclick={toggleMode}>
           {isSignupMode ? 'Sign In' : 'Create Account'}
