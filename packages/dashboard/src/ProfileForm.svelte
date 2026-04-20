@@ -33,8 +33,8 @@
             await saveProfile(profile);
             // saveProfile clears needsProfileSetup
             // dashboard should take over without manual routing
-        } catch (err) {
-            error = err instanceof Error ? err.message : 'Failed to save profile. Please try again.';
+        } catch (err: any) {
+            error = err.message || "Failed to save profile. Please try again.";
         } finally {
             isSubmitting = false;
         }
@@ -126,5 +126,24 @@
         border-radius: 8px;
         font-size: 0.9rem;
         border: 1px solid #FECACA;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: #fff;
     }
 </style>

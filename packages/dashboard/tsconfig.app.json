@@ -17,7 +17,16 @@
      */
     "allowJs": true,
     "checkJs": true,
+    "composite": true,
+    "allowArbitraryExtensions": true,
     "moduleDetection": "force"
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.svelte",
+    "../shared/src/**/*.ts",
+    "../shared/src/**/*.js",
+    "../shared/src/**/*.svelte"
+  ]
 }

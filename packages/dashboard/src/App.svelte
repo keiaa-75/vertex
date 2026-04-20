@@ -9,6 +9,7 @@
     registerUser
   } from '@vertex/shared';
   import ProfileForm from "./ProfileForm.svelte";
+  import TopicAccordion from "./components/TopicAccordion.svelte"
 
   let email = $state('');
   let password = $state('');
@@ -72,8 +73,8 @@
   {:else if !isAuthenticated}
     <section class="screen auth-screen">
       <div class="logo-placeholder">Vertex</div>
-      <h1>Vertex Dashboard</h1>
-      <p>Sign in to access your lessons and track progress.</p>
+      <h1>{isSignupMode ? "Create Account" : "Welcome Back"}</h1>
+      <p>{isSignupMode ? "Sign up to access your pre-calculus modules." : "Sign in to access your lessons."}</p>
 
       <form class="auth-form" onsubmit={handleSubmit}>
         {#if authError}
@@ -87,6 +88,7 @@
             type="email"
             bind:value={email}
             placeholder="john.doe@email.com"
+            autocomplete="username"
             required
             disabled={isAuthenticating}
           />
@@ -99,6 +101,7 @@
             type="password"
             bind:value={password}
             placeholder="********"
+            autocomplete="current-password"
             required
             disabled={isAuthenticating}
           />
@@ -140,7 +143,13 @@
       </header>
 
       <nav class="curriculum-nav">
-        <p class="placeholder-text">Curriculum accordion and checklist will render here.</p>
+        {#if $curriculumStore.topics.length > 0}
+          {#each $curriculumStore.topics as topic}
+            <TopicAccordion {topic} />
+          {/each}
+        {:else}
+          <p class="placeholder-text">No curriculum data found. Please check Firestore.</p>
+        {/if}
       </nav>
     </section>
   {/if}
@@ -243,6 +252,12 @@
     gap: 0.4rem;
   }
 
+  .field-hint {
+    font-size: 0.8rem;
+    color: #64748B;
+    margin-top: -0.2rem;
+  }
+
   label {
     font-weight: 600;
     color: var(--text);
@@ -288,5 +303,23 @@
 
   .link-btn:hover {
     text-decoration: underline;
+  }
+
+  .dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .user-info {
+    text-align: left;
+  }
+
+  .curriculum-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
   }
 </style>
