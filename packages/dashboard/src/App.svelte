@@ -12,6 +12,8 @@
   import ProfileForm from "./ProfileForm.svelte";
   import TopicList from "./components/TopicList.svelte";
   import TopicDetailView from "./components/TopicDetailView.svelte";
+  import ProfileView from "./components/ProfileView.svelte";
+  import ProfileEditForm from "./components/ProfileEditForm.svelte";
 
   let email = $state('');
   let password = $state('');
@@ -19,7 +21,8 @@
   let isAuthenticating = $state(false);
   let isSignupMode = $state(false);
 
-  // View navigation state
+  // Dashboard view routing
+  let viewState = $state<'topics' | 'profile' | 'editProfile'>('topics');
   let selectedTopic = $state<Topic | null>(null);
 
   let isLoading = $derived($userStore.loading || $curriculumStore.loading);
@@ -126,11 +129,10 @@
   {:else if profile}
     <section class="screen screen-dashboard">
       <div class="dashboard-card">
-        <!-- Compact Top Nav -->
         <header class="card-nav">
           <span class="nav-brand">Dash</span>
           <div class="nav-actions">
-            <button class="icon-btn" aria-label="Profile">
+            <button class="icon-btn" aria-label="Profile" onclick={() => { viewState = 'profile'; selectedTopic = null; }}>
               <span class="material-symbols-outlined">person</span>
             </button>
             <button class="icon-btn" onclick={logout} aria-label="Logout">
@@ -139,17 +141,24 @@
           </div>
         </header>
 
-        <!-- Dynamic Content Area -->
         <div class="card-content">
-          {#if selectedTopic}
-            <TopicDetailView 
-              {selectedTopic} 
-              onBack={() => selectedTopic = null} 
+          {#if viewState === 'topics'}
+            {#if selectedTopic}
+              <TopicDetailView {selectedTopic} onBack={() => selectedTopic = null} />
+            {:else}
+              <TopicList topics={$curriculumStore.topics} onSelectTopic={(t) => selectedTopic = t} />
+            {/if}
+          {:else if viewState === 'profile'}
+            <ProfileView 
+              profile={profile} 
+              onBack={() => viewState = 'topics'} 
+              onEdit={() => viewState = 'editProfile'} 
             />
-          {:else}
-            <TopicList 
-              topics={$curriculumStore.topics} 
-              onSelectTopic={(t) => selectedTopic = t} 
+          {:else if viewState === 'editProfile'}
+            <ProfileEditForm 
+              initialProfile={profile} 
+              onSave={() => viewState = 'profile'} 
+              onCancel={() => viewState = 'profile'} 
             />
           {/if}
         </div>

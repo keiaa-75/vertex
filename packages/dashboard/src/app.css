@@ -242,3 +242,54 @@ input:disabled { background: var(--md-sys-color-surface-variant); cursor: not-al
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-spacing-md);
+  padding: 0 var(--md-sys-spacing-lg) var(--md-sys-spacing-md);
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+  margin-bottom: 0;
+}
+
+.profile-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--md-sys-color-primary);
+}
+
+.profile-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.profile-row:last-child { border-bottom: none; }
+
+.edit-row {
+  padding-top: var(--md-sys-spacing-lg);
+  justify-content: flex-end;
+}
+
+.edit-btn {
+  gap: var(--md-sys-spacing-sm);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--md-sys-spacing-md);
+  margin-top: var(--md-sys-spacing-lg);
+  padding-top: var(--md-sys-spacing-md);
+  border-top: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.form-actions .btn { flex: 1; }
