@@ -101,7 +101,7 @@
       Cancel
     </button>
     <button type="submit" class="btn btn-save" disabled={!isValid || isSubmitting}>
-      {isSubmitting ? 'Saving...' : 'Save Changes'}
+      {isSubmitting ? 'Saving...' : 'Save'}
     </button>
   </div>
 </form>

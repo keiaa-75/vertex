@@ -1,10 +1,14 @@
 <script lang="ts">
   import type { Topic, Lesson } from "@vertex/shared";
+  import { curriculumStore, buildLessonMap } from "@vertex/shared";
 
   let { selectedTopic, onBack }: { 
     selectedTopic: Topic; 
     onBack: () => void 
   } = $props();
+
+  // Build a flat map of all lesson IDs -> Lesson objects for cross-topic prerequisite resolution
+  let lessonMap = $derived(buildLessonMap($curriculumStore.topics));
 
   function navigate(lesson: Lesson) {
     try {
@@ -18,11 +22,22 @@
     }
   }
 
-  function getSupportingText(lesson: Lesson) {
-    if (lesson.prerequisites?.length) {
-      return `Requires: ${lesson.prerequisites.join(', ')}`;
-    }
-    return '';
+  function getPrerequisiteHint(lesson: Lesson): string | null {
+    if (!lesson.prerequisites || lesson.prerequisites.length === 0) return null;
+
+    // Resolve prerequisite IDs to actual titles, filtering out any stale/missing IDs
+    const titles = lesson.prerequisites
+      .map(id => lessonMap.get(id)?.title)
+      .filter((title): title is string => title !== undefined);
+
+    if (titles.length === 0) return null;
+
+    // Format: "Title1", "Title1 and Title2", or "Title1, Title2, and Title3"
+    const joined = titles.length === 1
+      ? titles[0]
+      : `${titles.slice(0, -1).join(', ')} and ${titles[titles.length - 1]}`;
+
+    return `You might want to study ${joined} first.`;
   }
 </script>
 
@@ -49,8 +64,8 @@
         <!-- Content Area -->
         <div class="list-content">
           <span class="list-headline">{lesson.title}</span>
-          {#if getSupportingText(lesson)}
-            <span class="list-supporting-text prereq-text">{getSupportingText(lesson)}</span>
+          {#if getPrerequisiteHint(lesson)}
+            <span class="list-supporting-text prereq-text">{getPrerequisiteHint(lesson)}</span>
           {/if}
         </div>
         
