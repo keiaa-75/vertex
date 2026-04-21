@@ -1,13 +1,14 @@
 <script lang="ts">
-  import type { Topic, Lesson } from "@vertex/shared";
+  import type { Topic, Lesson, Progress } from "@vertex/shared";
   import { curriculumStore, buildLessonMap } from "@vertex/shared";
 
-  let { selectedTopic, onBack }: { 
+  let { selectedTopic, onBack, progressMap }: { 
     selectedTopic: Topic; 
-    onBack: () => void 
+    onBack: () => void;
+    progressMap: Map<string, Progress>;
   } = $props();
 
-  // Build a flat map of all lesson IDs -> Lesson objects for cross-topic prerequisite resolution
+  // Global lesson map for cross-topic prerequisite resolution
   let lessonMap = $derived(buildLessonMap($curriculumStore.topics));
 
   function navigate(lesson: Lesson) {
@@ -25,19 +26,33 @@
   function getPrerequisiteHint(lesson: Lesson): string | null {
     if (!lesson.prerequisites || lesson.prerequisites.length === 0) return null;
 
-    // Resolve prerequisite IDs to actual titles, filtering out any stale/missing IDs
     const titles = lesson.prerequisites
       .map(id => lessonMap.get(id)?.title)
       .filter((title): title is string => title !== undefined);
 
     if (titles.length === 0) return null;
 
-    // Format: "Title1", "Title1 and Title2", or "Title1, Title2, and Title3"
     const joined = titles.length === 1
       ? titles[0]
       : `${titles.slice(0, -1).join(', ')} and ${titles[titles.length - 1]}`;
 
     return `You might want to study ${joined} first.`;
+  }
+
+  function getLessonStatus(lesson: Lesson): 'unviewed' | 'viewed' | 'completed' {
+    const progress = progressMap.get(lesson.id);
+    if (!progress) return 'unviewed';
+    if (progress.completed) return 'completed';
+    if (progress.viewed) return 'viewed';
+    return 'unviewed';
+  }
+
+  function getLessonPercentage(lesson: Lesson): number {
+    const progress = progressMap.get(lesson.id);
+    if (!progress) return 0;
+    if (progress.completed) return 100;
+    if (progress.viewed) return 50;
+    return 0;
   }
 </script>
 
@@ -50,18 +65,18 @@
 
 <ul class="lesson-list">
   {#each selectedTopic.lessons as lesson}
+    {@const status = getLessonStatus(lesson)}
+    {@const percentage = getLessonPercentage(lesson)}
     <li>
-      <button class="lesson-list-item" onclick={() => navigate(lesson)}>
-        <!-- Leading Progress Ring (static 0% placeholder) -->
+      <button class="lesson-list-item" class:unviewed={status === 'unviewed'} class:viewed={status === 'viewed'} class:completed={status === 'completed'} onclick={() => navigate(lesson)}>
         <div class="progress-ring-small">
           <svg viewBox="0 0 36 36">
             <circle class="ring-bg" cx="18" cy="18" r="15.915" />
-            <circle class="ring-fill" cx="18" cy="18" r="15.915" stroke-dasharray="0, 100" />
+            <circle class="ring-fill" cx="18" cy="18" r="15.915" stroke-dasharray={`${percentage}, 100`} />
           </svg>
-          <span class="progress-text">0%</span>
+          <span class="progress-text">{percentage}%</span>
         </div>
         
-        <!-- Content Area -->
         <div class="list-content">
           <span class="list-headline">{lesson.title}</span>
           {#if getPrerequisiteHint(lesson)}
@@ -69,7 +84,6 @@
           {/if}
         </div>
         
-        <!-- Trailing Chevron -->
         <span class="material-symbols-outlined list-trailing">chevron_right</span>
       </button>
     </li>

@@ -1,23 +1,42 @@
 <script lang="ts">
-  import type { Topic } from "@vertex/shared";
+  import type { Topic, Progress } from "@vertex/shared";
 
-  let { topics, onSelectTopic }: { 
+  let { topics, onSelectTopic, progressMap }: { 
     topics: Topic[]; 
-    onSelectTopic: (topic: Topic) => void 
+    onSelectTopic: (topic: Topic) => void;
+    progressMap: Map<string, Progress>;
   } = $props();
+
+  function getTopicProgress(topic: Topic): number {
+    if (!topic.lessons || topic.lessons.length === 0) return 0;
+    
+    const completedCount = topic.lessons.filter(lesson => {
+      const progress = progressMap.get(lesson.id);
+      return progress?.completed === true;
+    }).length;
+
+    return Math.round((completedCount / topic.lessons.length) * 100);
+  }
+
+  function getTopicStatus(percentage: number): 'unviewed' | 'viewed' | 'completed' {
+    if (percentage === 100) return 'completed';
+    if (percentage > 0) return 'viewed';
+    return 'unviewed';
+  }
 </script>
 
 <ul class="topic-list">
   {#each topics as topic}
+    {@const percentage = getTopicProgress(topic)}
+    {@const status = getTopicStatus(percentage)}
     <li>
-      <button class="topic-list-item" onclick={() => onSelectTopic(topic)}>
+      <button class="topic-list-item" class:unviewed={status === 'unviewed'} class:viewed={status === 'viewed'} class:completed={status === 'completed'} onclick={() => onSelectTopic(topic)}>
         <div class="progress-ring-small">
           <svg viewBox="0 0 36 36">
             <circle class="ring-bg" cx="18" cy="18" r="15.915" />
-            <!-- Static 0% for now. Will bind to real progress store later -->
-            <circle class="ring-fill" cx="18" cy="18" r="15.915" stroke-dasharray="0, 100" />
+            <circle class="ring-fill" cx="18" cy="18" r="15.915" stroke-dasharray={`${percentage}, 100`} />
           </svg>
-          <span class="progress-text">0%</span>
+          <span class="progress-text">{percentage}%</span>
         </div>
         
         <div class="list-content">

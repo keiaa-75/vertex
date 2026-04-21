@@ -7,6 +7,9 @@
     logout,
     loginWithEmail,
     registerUser,
+    progressMonitorStore,
+    startProgressMonitor,
+    stopProgressMonitor,
     type Topic
   } from '@vertex/shared';
   import ProfileForm from "./ProfileForm.svelte";
@@ -25,7 +28,7 @@
   let viewState = $state<'topics' | 'profile' | 'editProfile'>('topics');
   let selectedTopic = $state<Topic | null>(null);
 
-  let isLoading = $derived($userStore.loading || $curriculumStore.loading);
+  let isLoading = $derived($userStore.loading || $curriculumStore.loading || $progressMonitorStore.loading);
   let isAuthenticated = $derived(!!$userStore.firebaseUser);
   let needsProfileSetup = $derived($userStore.needsProfileSetup);
   let profile = $derived($userStore.profile);
@@ -55,13 +58,27 @@
     }
   }
 
+  // Manage Firestore progress monitor lifecycle
+  $effect(() => {
+    const user = $userStore.firebaseUser;
+    if (user) {
+      startProgressMonitor(user.uid);
+      // Cleanup when user changes or component unmounts
+      return () => stopProgressMonitor();
+    }
+    // If logged out, ensure monitor is stopped
+    stopProgressMonitor();
+  });
+
   $effect(() => {
     console.log('State Check:', {
       userLoading: $userStore.loading,
-      userAuth: !!$userStore.firebaseUser,
-      needsProfile: $userStore.needsProfileSetup,
+      userAuth: isAuthenticated,
+      needsProfile: needsProfileSetup,
       curriculumLoading: $curriculumStore.loading,
       curriculumTopics: $curriculumStore.topics.length,
+      monitorLoading: $progressMonitorStore.loading,
+      monitorEntries: $progressMonitorStore.map.size,
       isLoading
     });
   });
@@ -144,9 +161,17 @@
         <div class="card-content">
           {#if viewState === 'topics'}
             {#if selectedTopic}
-              <TopicDetailView {selectedTopic} onBack={() => selectedTopic = null} />
+              <TopicDetailView 
+                {selectedTopic} 
+                progressMap={$progressMonitorStore.map}
+                onBack={() => selectedTopic = null} 
+              />
             {:else}
-              <TopicList topics={$curriculumStore.topics} onSelectTopic={(t) => selectedTopic = t} />
+              <TopicList 
+                topics={$curriculumStore.topics} 
+                progressMap={$progressMonitorStore.map}
+                onSelectTopic={(t) => selectedTopic = t} 
+              />
             {/if}
           {:else if viewState === 'profile'}
             <ProfileView 
