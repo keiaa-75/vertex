@@ -9,6 +9,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 export interface UserProfile {
+    email: string;
     fullName: string;
     studentNo: string;
     section: string;
@@ -69,15 +70,21 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     }
 });
 
-export async function saveProfile(profile: UserProfile): Promise<void> {
+export async function saveProfile(profileData: Omit<UserProfile, 'email'>): Promise<void> {
     const user = auth.currentUser;
     if (!user) throw new Error('User must be authenticated to save profile');
+    if (!user.email) throw new Error('Authenticated user has no email address');
 
-    await setDoc(doc(db, 'users', user.uid), profile);
+    const completeProfile: UserProfile = {
+        ...profileData,
+        email: user.email.toLowerCase()
+    };
+
+    await setDoc(doc(db, 'users', user.uid), completeProfile, { merge:true });
 
     update(state => ({
         ...state,
-        profile,
+        profile: completeProfile,
         needsProfileSetup: false
     }));
 }

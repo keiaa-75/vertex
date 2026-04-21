@@ -22,7 +22,7 @@
         error = null;
 
         try {
-            const profile: UserProfile = {
+            const profile: Omit<UserProfile, 'email'> = {
                 fullName: fullName.trim(),
                 studentNo: studentNo.trim(),
                 section: section.trim()
