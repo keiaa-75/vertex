@@ -399,8 +399,8 @@ input:disabled {
 
 /* Progress Rings */
 .progress-ring-small {
-  width: 40px;
-  height: 40px;
+  width: 32px;      /* Slightly smaller container */
+  height: 32px;
   flex-shrink: 0;
   position: relative;
 }
@@ -413,27 +413,22 @@ input:disabled {
 
 .progress-ring-small .ring-bg {
   fill: none;
-  stroke: var(--md-sys-color-surface-variant);
-  stroke-width: 3;
+  stroke: #E5E7EB;  /* Neutral track: visible on both white and hover backgrounds */
+  stroke-width: 5px;/* Thicker stroke */
 }
 
 .progress-ring-small .ring-fill {
   fill: none;
   stroke: var(--md-sys-color-primary);
-  stroke-width: 3;
+  stroke-width: 5px; /* Matches bg thickness */
   stroke-linecap: round;
   transition: stroke-dasharray 0.4s ease, stroke 0.3s ease;
 }
 
-.progress-ring-small .progress-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface);
+/* Keep track visible when list item hovers */
+.topic-list-item:hover .ring-bg,
+.lesson-list-item:hover .ring-bg {
+  stroke: #D1D5DB;
 }
 
 /* Status Modifiers (README: Red/Blue/Green) */

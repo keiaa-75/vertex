@@ -8,7 +8,6 @@
     progressMap: Map<string, Progress>;
   } = $props();
 
-  // Global lesson map for cross-topic prerequisite resolution
   let lessonMap = $derived(buildLessonMap($curriculumStore.topics));
 
   function navigate(lesson: Lesson) {
@@ -70,11 +69,10 @@
     <li>
       <button class="lesson-list-item" class:unviewed={status === 'unviewed'} class:viewed={status === 'viewed'} class:completed={status === 'completed'} onclick={() => navigate(lesson)}>
         <div class="progress-ring-small">
-          <svg viewBox="0 0 36 36">
-            <circle class="ring-bg" cx="18" cy="18" r="15.915" />
-            <circle class="ring-fill" cx="18" cy="18" r="15.915" stroke-dasharray={`${percentage}, 100`} />
+          <svg viewBox="0 0 40 40">
+            <circle class="ring-bg" cx="20" cy="20" r="16" />
+            <circle class="ring-fill" cx="20" cy="20" r="16" stroke-dasharray={`${percentage}, 100.53`} />
           </svg>
-          <span class="progress-text">{percentage}%</span>
         </div>
         
         <div class="list-content">
