@@ -1,18 +1,19 @@
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
-import path from 'path';
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-// https://vite.dev/config/
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 export default defineConfig({
+  base: '/',
   plugins: [svelte()],
-  base: '/vertex/',   // GitHub Pages subpath
   resolve: {
     alias: {
-      '@vertex/shared': path.resolve(__dirname, '../shared/src/lib')
+      '@vertex/shared': join(__dirname, '../shared/src/lib')
     }
   },
   build: {
-    outDir: '../../dist/dashboard',
-    emptyOutDir: true
+    assetsInlineLimit: 0
   }
 })

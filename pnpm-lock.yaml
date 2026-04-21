@@ -14,13 +14,13 @@ importers:
 
   packages/dashboard:
     dependencies:
-      firebase:
-        specifier: ^12.12.0
-        version: 12.12.0
+      '@vertex/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.0.0
-        version: 7.0.0(svelte@5.55.3)(vite@8.0.8(@types/node@24.12.2))
+        version: 7.0.0(svelte@5.55.3)(vite@8.0.9(@types/node@24.12.2))
       '@tsconfig/svelte':
         specifier: ^5.0.8
         version: 5.0.8
@@ -37,10 +37,14 @@ importers:
         specifier: ~6.0.2
         version: 6.0.2
       vite:
-        specifier: ^8.0.4
-        version: 8.0.8(@types/node@24.12.2)
+        specifier: ^8.0.8
+        version: 8.0.9(@types/node@24.12.2)
 
   packages/module-template:
+    dependencies:
+      '@vertex/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.0.0
@@ -1583,6 +1587,15 @@ snapshots:
       svelte: 5.55.3
       vite: 8.0.8(@types/node@24.12.2)
       vitefu: 1.1.3(vite@8.0.8(@types/node@24.12.2))
+
+  '@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.3)(vite@8.0.9(@types/node@24.12.2))':
+    dependencies:
+      deepmerge: 4.3.1
+      magic-string: 0.30.21
+      obug: 2.1.1
+      svelte: 5.55.3
+      vite: 8.0.9(@types/node@24.12.2)
+      vitefu: 1.1.3(vite@8.0.9(@types/node@24.12.2))
 
   '@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.4)(vite@8.0.9(@types/node@24.12.2))':
     dependencies:

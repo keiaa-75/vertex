@@ -9,7 +9,7 @@ export {
   startProgressMonitor, 
   stopProgressMonitor 
 } from './stores/progress-monitor';
-export type { ProgressMonitorState } from './stores/progress-monitor';
+export type { ProgressMonitorState, Progress } from './stores/progress-monitor';
 
 // User and auth
 export {
