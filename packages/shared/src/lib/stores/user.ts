@@ -3,7 +3,6 @@ import {
     onAuthStateChanged,
     signOut,
     signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
     type User
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';

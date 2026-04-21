@@ -1,7 +1,17 @@
 import { writable } from 'svelte/store';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { Progress } from '../progress-tracker';
+import { Timestamp } from 'firebase/firestore';
+
+export interface Progress {
+  lessonId: string;
+  userId: string;
+  viewed: boolean;
+  viewedAt: Timestamp | null;
+  completed: boolean;
+  completedAt: Timestamp | null;
+  quizScore: number | null;
+}
 
 export interface ProgressMonitorState {
     map: Map<string, Progress>;
