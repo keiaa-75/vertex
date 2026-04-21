@@ -20,6 +20,7 @@ function buildProgressDocId(uid: string, lessonId: string): string {
 /**
  * Marks a lesson as viewed (idempotent).
  * Only writes if not already viewed.
+ * Called by lesson modules on mount.
  */
 export async function markViewed(lessonId: string): Promise<void> {
     const user = auth.currentUser;
@@ -34,6 +35,7 @@ export async function markViewed(lessonId: string): Promise<void> {
 
     await setDoc(progressRef, {
         lessonId,
+        userId: user.uid,
         viewed: true,
         viewedAt: serverTimestamp(),
         completed: false,
@@ -45,8 +47,9 @@ export async function markViewed(lessonId: string): Promise<void> {
 /**
  * Marks a lesson as completed with a quiz score.
  * Only writes if not already completed OR if score improved.
+ * Called by lesson modules (typically post-test) upon passing.
  */
-export async function markCompleted(lessonId: string, score:number): Promise<void> {
+export async function markCompleted(lessonId: string, score: number): Promise<void> {
     const user = auth.currentUser;
     if (!user) throw new Error('User must be authenticated to track progress');
 
@@ -61,6 +64,7 @@ export async function markCompleted(lessonId: string, score:number): Promise<voi
 
     await setDoc(progressRef, {
         lessonId,
+        userId: user.uid,
         viewed: true,
         viewedAt: existing?.viewedAt ?? serverTimestamp(),
         completed: true,
@@ -72,6 +76,7 @@ export async function markCompleted(lessonId: string, score:number): Promise<voi
 /**
  * Retrieves progress for a specific lesson.
  * Returns null if no record exists.
+ * One-time read - use progressMonitorStore for reactive updates.
  */
 export async function getProgress(lessonId: string): Promise<Progress | null> {
     const user = auth.currentUser;
