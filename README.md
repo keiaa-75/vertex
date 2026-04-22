@@ -17,10 +17,6 @@ Together, this empowers educators to manage course structure static content visu
 
 ## How it works
 
-<p align="center">
-    <img alt = "Diagram" src="vertex-architecture.webp"/>
-</p>
-
 1. The host page embeds Vertex modules via `<iframe>`.
 2. All modules and the Dashboard share the same origin, which enables automatic Firebase session sharing via IndexedDB.
 3. Navigation uses `window.top.location.href` to move users between host pages.
