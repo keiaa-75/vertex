@@ -56,8 +56,14 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   margin: 0;
+  height: 100%;
+  overflow: hidden;
   font-family: var(--md-sys-typescale-body);
   background: var(--md-sys-color-background);
   color: var(--md-sys-color-on-background);
@@ -88,11 +94,14 @@ h3 {
 
 /* Layout */
 .vertex-app {
-  min-height: 100vh;
+  /* Locks to viewport — no padding that can cause overflow in a fixed-height iframe */
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--md-sys-spacing-xl) var(--md-sys-spacing-md);
+  /* Fallback scroll for very short viewports on auth/setup screens */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .screen {
@@ -100,35 +109,36 @@ h3 {
 }
 
 .screen-center {
-  max-width: 480px;
+  /* min() keeps the card from ever touching the viewport edges without outer padding */
+  width: 100%;
+  max-width: min(480px, calc(100% - 2rem));
   margin: auto;
 }
 
 .screen-dashboard {
-  max-width: 960px;
+  /* Fills .vertex-app height instead of centering as a short block */
   width: 100%;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 /* Cards */
 .card-elevated {
+  /* Removed: border-radius, box-shadow — planted surface, not floating card */
   background: var(--md-sys-color-surface);
-  border-radius: var(--md-sys-shape-corner-extra-large);
-  box-shadow: var(--md-sys-elevation-2);
   padding: var(--md-sys-spacing-xl);
   border: 1px solid var(--md-sys-color-surface-variant);
 }
 
 .dashboard-card {
+  /* Removed: border-radius, box-shadow, max-width, outer border — fills the iframe plane */
   background: var(--md-sys-color-surface);
-  border-radius: var(--md-sys-shape-corner-large);
-  box-shadow: var(--md-sys-elevation-2);
-  border: 1px solid var(--md-sys-color-surface-variant);
   overflow: hidden;
   width: 100%;
-  max-width: 800px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-nav {
@@ -137,6 +147,7 @@ h3 {
   align-items: center;
   padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
   border-bottom: 1px solid var(--md-sys-color-surface-variant);
+  flex-shrink: 0;
 }
 
 .nav-brand {
@@ -154,6 +165,10 @@ h3 {
 }
 
 .card-content {
+  /* Single scroll root for all list content — contained, no host-page drift */
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--md-sys-spacing-md) 0;
 }
 
@@ -399,7 +414,7 @@ input:disabled {
 
 /* Progress Rings */
 .progress-ring-small {
-  width: 32px;      /* Slightly smaller container */
+  width: 32px;
   height: 32px;
   flex-shrink: 0;
   position: relative;
@@ -413,14 +428,14 @@ input:disabled {
 
 .progress-ring-small .ring-bg {
   fill: none;
-  stroke: #E5E7EB;  /* Neutral track: visible on both white and hover backgrounds */
-  stroke-width: 5px;/* Thicker stroke */
+  stroke: #E5E7EB;
+  stroke-width: 5px;
 }
 
 .progress-ring-small .ring-fill {
   fill: none;
   stroke: var(--md-sys-color-primary);
-  stroke-width: 5px; /* Matches bg thickness */
+  stroke-width: 5px;
   stroke-linecap: round;
   transition: stroke-dasharray 0.4s ease, stroke 0.3s ease;
 }
@@ -558,9 +573,9 @@ input:disabled {
 }
 
 .placeholder-card {
+  /* Removed: border-radius */
   padding: var(--md-sys-spacing-2xl);
   border: 2px dashed var(--md-sys-color-surface-variant);
-  border-radius: var(--md-sys-shape-corner-large);
   color: var(--md-sys-color-on-surface-variant);
   text-align: center;
   background: var(--md-sys-color-surface);
