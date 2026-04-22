@@ -21,7 +21,7 @@ export interface ProgressMonitorState {
 
 const initialState: ProgressMonitorState = {
     map: new Map(),
-    loading: true,
+    loading: false,
     error: null
 };
 
