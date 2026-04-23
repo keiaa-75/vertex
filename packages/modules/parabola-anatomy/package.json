@@ -1,5 +1,5 @@
 {
-  "name": "module-template",
+  "name": "@vertex/parabola-anatomy",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -21,6 +21,6 @@
     "vite": "^8.0.9"
   },
   "vertex": {
-    "githubPagesPath": "/modules/{topic}/{lesson}"
+    "githubPagesPath": "/modules/parabola/anatomy/"
   }
 }
