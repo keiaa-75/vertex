@@ -3,6 +3,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { UserConfig } from 'vite'
 
 // Resolve directory in ESM
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -21,7 +22,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Ensures workspace linking resolves correctly during build
-      '@vertex/shared': join(__dirname, '../shared/src/lib')
+      '@vertex/shared': join(__dirname, '../../shared/src/lib')
     }
   },
   build: {
@@ -29,4 +30,4 @@ export default defineConfig({
     assetsInlineLimit: 0,
     cssCodeSplit: true
   }
-})
+} as UserConfig)
