@@ -29,5 +29,11 @@ export const parts: Part[] = [
         name: 'Axis of Symmetry',
         slotId: 'slot-axis',
         definition: 'The vertical line that divides the parabola into two mirror images.'
+    },
+    {
+        id: 'p',
+        name: 'p',
+        slotId: 'slot-p',
+        definition: 'The focal length. The distance from the vertex to the focus, equal to the distance from the vertex to the directrix. In standard form: x² = 4py.'
     }
 ];
