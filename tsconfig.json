@@ -18,7 +18,8 @@
   "references": [
     { "path": "./packages/dashboard" },
     { "path": "./packages/module-template" },
-    { "path": "./packages/shared" }
+    { "path": "./packages/shared" },
+    { "path": "./packages/modules/parabola-anatomy" }
   ],
   "files": []
 }
