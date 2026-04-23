@@ -1,8 +1,9 @@
-export type SwipeDirection = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+import type { Direction } from './generator';
 
-export function swipe(node: HTMLElement, threshold = 50) {
+export function swipe(node: HTMLElement, onSwipe: (dir: Direction) => void) {
   let startX: number;
   let startY: number;
+  const threshold = 50;
 
   function handleDown(e: PointerEvent) {
     startX = e.clientX;
@@ -17,13 +18,13 @@ export function swipe(node: HTMLElement, threshold = 50) {
     const absY = Math.abs(diffY);
 
     if (Math.max(absX, absY) > threshold) {
-      let direction: SwipeDirection;
+      let direction: Direction;
       if (absX > absY) {
         direction = diffX > 0 ? 'RIGHT' : 'LEFT';
       } else {
         direction = diffY > 0 ? 'DOWN' : 'UP';
       }
-      node.dispatchEvent(new CustomEvent('swipe', { detail: direction }));
+      onSwipe(direction); // Call the function directly
     }
   }
 
