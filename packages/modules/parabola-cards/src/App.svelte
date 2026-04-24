@@ -259,46 +259,6 @@
 </main>
 
 <style>
-  :global(html), :global(body) {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    height: 100%;
-  }
-
-  :root {
-    --md-sys-color-primary:            #1A4B84;
-    --md-sys-color-on-primary:         #FFFFFF;
-    --md-sys-color-primary-container:  #DCE5F5;
-    --md-sys-color-secondary:          #FFC857;
-    --md-sys-color-on-secondary:       #1A1A1A;
-    --md-sys-color-error:              #DC2626;
-    --md-sys-color-on-error:           #FFFFFF;
-    --md-sys-color-background:         #F8FAFC;
-    --md-sys-color-surface:            #FFFFFF;
-    --md-sys-color-on-surface:         #1E293B;
-    --md-sys-color-surface-variant:    #F1F5F9;
-    --md-sys-color-on-surface-variant: #64748B;
-    --md-sys-color-completed:          #059669;
-
-    --md-sys-typescale-heading: 'Outfit', system-ui, sans-serif;
-    --md-sys-typescale-body:    'Plus Jakarta Sans', system-ui, sans-serif;
-
-    --md-sys-shape-corner-small:  8px;
-    --md-sys-shape-corner-medium: 12px;
-    --md-sys-shape-corner-large:  16px;
-    --md-sys-shape-corner-full:   9999px;
-
-    --md-sys-spacing-xs: 0.25rem;
-    --md-sys-spacing-sm: 0.5rem;
-    --md-sys-spacing-md: 1rem;
-    --md-sys-spacing-lg: 1.5rem;
-    --md-sys-spacing-xl: 2rem;
-
-    --md-sys-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --md-sys-elevation-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  }
-
   .module-shell {
     width: 100%;
     height: 100dvh;

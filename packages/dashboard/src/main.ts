@@ -1,4 +1,5 @@
 import { mount } from 'svelte'
+import '@vertex/shared/vertex.css'
 import './app.css'
 import App from './App.svelte'
 

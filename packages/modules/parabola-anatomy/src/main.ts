@@ -1,7 +1,9 @@
 import { mount } from 'svelte'
+import '@vertex/shared/vertex.css'
 import App from './App.svelte'
 
-// Initialize Svelte 5 app on the embed container
-const app = mount(App, { target: document.getElementById('app')! })
+const app = mount(App, {
+    target: document.getElementById('app')!
+})
 
 export default app

@@ -136,37 +136,6 @@
 </main>
 
 <style>
-  :global(html),
-  :global(body) {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    height: 100%;
-  }
-
-  :root {
-    --md-sys-color-primary:            #1A4B84;
-    --md-sys-color-on-primary:         #FFFFFF;
-    --md-sys-color-primary-container:  #DCE5F5;
-    --md-sys-color-secondary:          #FFC857;
-    --md-sys-color-tertiary:           #00B4D8;
-    --md-sys-color-surface:            #FFFFFF;
-    --md-sys-color-on-surface:         #1E293B;
-    --md-sys-color-surface-variant:    #F1F5F9;
-    --md-sys-color-on-surface-variant: #64748B;
-
-    --md-sys-typescale-heading: 'Outfit', system-ui, sans-serif;
-    --md-sys-typescale-body:    'Plus Jakarta Sans', system-ui, sans-serif;
-
-    --md-sys-shape-corner-medium: 12px;
-    --md-sys-shape-corner-full:   9999px;
-
-    --md-sys-spacing-xs: 0.25rem;
-    --md-sys-spacing-sm: 0.5rem;
-    --md-sys-spacing-md: 1rem;
-    --md-sys-spacing-lg: 1.5rem;
-  }
-
   .module-shell {
     position: relative;
     width: 100%;
