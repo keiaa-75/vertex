@@ -16,5 +16,19 @@ export default defineConfig({
   },
   build: {
     assetsInlineLimit: 0
+  },
+  server: {
+    proxy: {
+      '/modules/parabola/anatomy': {
+        target: 'http://localhost:5174',
+        changeOrigin: true,
+        ws: true,
+      },
+      '/modules/parabola/cards': {
+        target: 'http://localhost:5175',
+        changeOrigin: true,
+        ws: true,
+      },
+    }
   }
 })
