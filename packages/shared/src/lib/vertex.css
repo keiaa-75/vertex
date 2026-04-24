@@ -1,0 +1,320 @@
+/* ============================================================
+   VERTEX DESIGN TOKENS & BASE STYLES
+   Shared across dashboard and all modules.
+   Import in every package's main.ts:
+     import '@vertex/shared/vertex.css'
+   ============================================================ */
+
+/* ── Fonts ───────────────────────────────────────────────────
+   Each consumer is responsible for loading the font faces that
+   match these family names, either via <link> in index.html or
+   a @import here. Defaults fall back to system-ui so the token
+   layer is always safe to import without a network dependency.
+   ──────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Color: Brand → MD3 Semantic Mapping ── */
+  --md-sys-color-primary:#1A4B84;
+  --md-sys-color-on-primary:#FFFFFF;
+  --md-sys-color-primary-container:#DCE5F5;
+  --md-sys-color-secondary:#FFC857;
+  --md-sys-color-on-secondary:#1A1A1A;
+  --md-sys-color-secondary-container:#FFF0C0;
+  --md-sys-color-tertiary:#00B4D8;
+  --md-sys-color-on-tertiary:#FFFFFF;
+  --md-sys-color-tertiary-container:#E6F7FA;
+  --md-sys-color-error:#DC2626;
+  --md-sys-color-on-error:#FFFFFF;
+  --md-sys-color-background:#F8FAFC;
+  --md-sys-color-on-background:#1E293B;
+  --md-sys-color-surface:#FFFFFF;
+  --md-sys-color-on-surface:#1E293B;
+  --md-sys-color-surface-variant:#F1F5F9;
+  --md-sys-color-on-surface-variant:#64748B;
+
+  /* ── Color: Progress Status ── */
+  --md-sys-color-unviewed:#DC2626;
+  --md-sys-color-viewed:#0284C7;
+  --md-sys-color-completed:#059669;
+
+  /* ── Typography ── */
+  --md-sys-typescale-heading: 'Outfit', system-ui, sans-serif;
+  --md-sys-typescale-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* ── Spacing (4 px baseline) ── */
+  --md-sys-spacing-xs: 0.25rem;
+  --md-sys-spacing-sm: 0.5rem;
+  --md-sys-spacing-md: 1rem;
+  --md-sys-spacing-lg: 1.5rem;
+  --md-sys-spacing-xl: 2rem;
+  --md-sys-spacing-2xl: 3rem;
+
+  /* ── Shape ── */
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* ── Elevation ── */
+  --md-sys-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --md-sys-elevation-2: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+                        0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --md-sys-elevation-3: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+                        0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* ── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--md-sys-typescale-body);
+  background: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+/* ── Typography ───────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--md-sys-typescale-heading);
+  color: var(--md-sys-color-primary);
+  margin: 0 0 var(--md-sys-spacing-sm) 0;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+}
+
+/* ── Layout shell ─────────────────────────────────────────── */
+/* Shared between the dashboard and any module that needs a
+   full-viewport container. */
+.vertex-app {
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.screen {
+    width: 100%;
+}
+
+.screen-center {
+  width: 100%;
+  max-width: min(480px, calc(100% - 2rem));
+  margin: auto;
+}
+.screen-dashboard {
+  width: 100%;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Surfaces ─────────────────────────────────────────────── */
+.card-elevated {
+  background: var(--md-sys-color-surface);
+  padding: var(--md-sys-spacing-xl);
+  border: 1px solid var(--md-sys-color-surface-variant);
+}
+
+/* ── Forms & inputs ───────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-xs);
+}
+
+label {
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.85rem;
+}
+
+input {
+  padding: 0.875rem 1rem;
+  border: 1.5px solid var(--md-sys-color-surface-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  font-size: 1rem;
+  background: transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--md-sys-color-tertiary);
+  box-shadow: 0 0 0 4px var(--md-sys-color-tertiary-container);
+}
+
+input:disabled {
+  background: var(--md-sys-color-surface-variant);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-top: -0.1rem;
+}
+
+.error-msg {
+  background: #FEF2F2;
+  color: #991B1B;
+  padding: var(--md-sys-spacing-sm) var(--md-sys-spacing-md);
+  border-radius: var(--md-sys-shape-corner-small);
+  font-size: 0.85rem;
+  border: 1px solid #FECACA;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, background-color 0.2s;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--md-sys-spacing-sm);
+  font-family: var(--md-sys-typescale-body);
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-filled {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    box-shadow: var(--md-sys-elevation-1);
+}
+
+.btn-filled:hover:not(:disabled) {
+    box-shadow: var(--md-sys-elevation-2);
+}
+
+.btn-tonal {
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+}
+
+.btn-tonal:hover:not(:disabled) {
+    background: #E2E8F0;
+}
+
+.btn-text {
+    background: none;
+    color: var(--md-sys-color-tertiary);
+    padding: 0.25rem 0.5rem;
+    margin: 0 -0.25rem;
+}
+
+.btn-text:hover {
+    text-decoration: underline;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.icon-btn:hover  {
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+}
+
+.icon-btn:active {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-primary);
+}
+
+/* ── Utilities ────────────────────────────────────────────── */
+.hint {
+  color: var(--md-sys-color-on-surface-variant);
+  margin-top: 0.875rem;
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.hint-center {
+    text-align: center;
+}
+
+.meta {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.9rem;
+  display: block;
+  margin-top: var(--md-sys-spacing-xs);
+}
+
+.logo {
+  height: 48px;
+  width: auto;
+  margin-bottom: var(--md-sys-spacing-md);
+  display: block;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--md-sys-color-primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto var(--md-sys-spacing-md);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.placeholder-card {
+  padding: var(--md-sys-spacing-2xl);
+  border: 2px dashed var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+  background: var(--md-sys-color-surface);
+  margin: var(--md-sys-spacing-lg);
+}

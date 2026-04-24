@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/lib/index.ts"
+    ".": "./src/lib/index.ts",
+    "./vertex.css": "./src/lib/vertex.css"
   },
   "scripts": {
     "check": "svelte-check --tsconfig ./tsconfig.json",
