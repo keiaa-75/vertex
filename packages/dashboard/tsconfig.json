@@ -5,6 +5,10 @@
     "rootDir": "./src",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.d.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.svelte",
+    "../shared/src/env.d.ts"
+  ],
   "references": [{ "path": "../shared" }]
 }
