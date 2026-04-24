@@ -12,7 +12,7 @@
     onAuthStateChanged,
     type User
   } from '@vertex/shared';
-  
+
   let gameState = $state<'MENU' | 'PLAYING' | 'GAME_OVER'>('MENU');
   let currentCard = $state<ParabolaCard>(generateCard());
   let score = $state(0);
@@ -56,13 +56,12 @@
 
   async function submitHighScore(finalScore: number) {
     if (!currentUser || finalScore <= personalBest) return;
-
+  
     try {
       const ref = doc(db, 'highScores', currentUser.uid);
       await setDoc(ref, {
         score: finalScore,
-        updatedAt: serverTimestamp(),
-        displayName: currentUser.displayName || 'Unknown'
+        updatedAt: serverTimestamp()
       }, { merge: true });
       personalBest = finalScore;
     } catch (e) {
