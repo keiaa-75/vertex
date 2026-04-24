@@ -29,7 +29,7 @@ export { curriculumStore, loadCurriculum, buildLessonMap } from './stores/curric
 export type { CurriculumState, Topic, Lesson } from './stores/curriculum';
 
 // Firestore helpers (re-exported for convenience in modules)
-export { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+export { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 export { onAuthStateChanged, type User } from 'firebase/auth';
 
 // Audio
