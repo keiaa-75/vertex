@@ -6,6 +6,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [svelte()],
   // No 'base' needed for lib pkg
+  envDir: '../../',
   resolve: {
     alias: {
       '@vertex/shared': path.resolve(__dirname, './src/lib')

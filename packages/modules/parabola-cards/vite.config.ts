@@ -19,6 +19,7 @@ if (base === '/modules/unknown') {
 export default defineConfig({
   base,
   plugins: [svelte()],
+  envDir: '../../../',
   resolve: {
     alias: {
       // Ensures workspace linking resolves correctly during build

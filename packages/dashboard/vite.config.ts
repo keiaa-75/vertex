@@ -8,6 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   base: '/',
   plugins: [svelte()],
+  envDir: '../../',
   resolve: {
     alias: {
       '@vertex/shared': join(__dirname, '../shared/src/lib')
