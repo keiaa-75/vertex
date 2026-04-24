@@ -2,24 +2,30 @@
   import { generateCard, type Direction, type ParabolaCard } from './lib/generator';
   import { swipe } from './lib/swipe';
 
-  // --- Game State ---
+  // --- State ---
   let gameState = $state<'MENU' | 'PLAYING' | 'GAME_OVER'>('MENU');
   let currentCard = $state<ParabolaCard>(generateCard());
   let score = $state(0);
-  let timeLeft = $state(3000); 
+  let timeLeft = $state(3000);
   let isReverseMode = $state(false);
   let gameOverReason = $state<'TIMEOUT' | 'WRONG_DIRECTION' | null>(null);
-  
-  // Feedback States
   let lastFeedback = $state<'CORRECT' | 'WRONG' | null>(null);
   let lastInputDirection = $state<Direction | null>(null);
 
   const TIME_LIMIT = 3000;
   let timerInterval: number | undefined;
 
-  // --- Game Actions ---
+  // Derived
+  let timerPct = $derived(timeLeft / TIME_LIMIT);
+  let timerColorClass = $derived(
+    timerPct > 0.55 ? '' : timerPct > 0.28 ? 'warn' : 'danger'
+  );
+
+  // --- Actions ---
   function startGame() {
     score = 0;
+    lastFeedback = null;
+    lastInputDirection = null;
     gameState = 'PLAYING';
     nextCard();
   }
@@ -35,9 +41,7 @@
     clearInterval(timerInterval);
     timerInterval = window.setInterval(() => {
       timeLeft -= 10;
-      if (timeLeft <= 0) {
-        endGame('TIMEOUT');
-      }
+      if (timeLeft <= 0) endGame('TIMEOUT');
     }, 10);
   }
 
@@ -47,25 +51,23 @@
     gameOverReason = reason;
   }
 
-  // --- Input Logic ---
   const opposites: Record<Direction, Direction> = {
     UP: 'DOWN', DOWN: 'UP', LEFT: 'RIGHT', RIGHT: 'LEFT'
   };
 
-  function handleInput(inputDir: Direction) {
+  function handleInput(dir: Direction) {
     if (gameState !== 'PLAYING') return;
 
-    // Visual feedback loop: flash the input indicator
-    lastInputDirection = inputDir;
-    setTimeout(() => { lastInputDirection = null; }, 150);
+    lastInputDirection = dir;
+    setTimeout(() => { lastInputDirection = null; }, 180);
 
-    const targetDir = isReverseMode ? opposites[currentCard.direction] : currentCard.direction;
+    const target = isReverseMode ? opposites[currentCard.direction] : currentCard.direction;
 
-    if (inputDir === targetDir) {
+    if (dir === target) {
       score++;
       lastFeedback = 'CORRECT';
-      // Short delay for visual confirmation before swapping equation
-      setTimeout(nextCard, 100);
+      clearInterval(timerInterval);
+      setTimeout(nextCard, 160);
     } else {
       lastFeedback = 'WRONG';
       endGame('WRONG_DIRECTION');
@@ -77,190 +79,481 @@
       w: 'UP', s: 'DOWN', a: 'LEFT', d: 'RIGHT',
       ArrowUp: 'UP', ArrowDown: 'DOWN', ArrowLeft: 'LEFT', ArrowRight: 'RIGHT'
     };
-    if (keyMap[e.key]) handleInput(keyMap[e.key]);
+    if (keyMap[e.key]) {
+      e.preventDefault();
+      handleInput(keyMap[e.key]);
+    }
   }
 </script>
 
+<svelte:options css="injected" />
 <svelte:window onkeydown={handleKeyDown} />
 
-<main class="game-container" class:reversed={isReverseMode}>
-  <header>
-    <div class="score-pill">Score: {score}</div>
-    <label class="mode-toggle">
-      <input type="checkbox" bind:checked={isReverseMode} disabled={gameState === 'PLAYING'} />
-      <span class="slider"></span>
-      {isReverseMode ? "REVERSE MODE" : "NORMAL MODE"}
+<main class="module-shell">
+
+  <!-- Header -->
+  <header class="game-header">
+    <div class="score-pill">
+      <span class="score-label">Score</span>
+      <span class="score-value">{score}</span>
+    </div>
+
+    <span class="game-title">Parabola Sort</span>
+
+    <label class="mode-toggle" class:disabled={gameState === 'PLAYING'}>
+      <input
+        type="checkbox"
+        bind:checked={isReverseMode}
+        disabled={gameState === 'PLAYING'}
+      />
+      <span class="toggle-track">
+        <span class="toggle-thumb"></span>
+      </span>
+      <span class="toggle-label">{isReverseMode ? 'Reversed' : 'Normal'}</span>
     </label>
   </header>
 
-  {#if gameState === 'MENU'}
-    <div class="overlay">
-      <h1>Parabola Sort</h1>
-      <p>Flick/WASD in the direction the parabola opens.</p>
-      {#if isReverseMode}
-        <p class="warning"><strong>Reverse Mode:</strong> Flick OPPOSITE to the opening!</p>
-      {/if}
-      <button onclick={startGame}>START SESSION</button>
+  <!-- Stage -->
+  <div class="stage" use:swipe={handleInput}>
+
+    <!-- Timer — full-width strip pinned to top of stage -->
+    <div class="timer-track" aria-hidden="true">
+      <div
+        class="timer-fill {timerColorClass}"
+        style:width="{timerPct * 100}%"
+      ></div>
     </div>
 
-  {:else if gameState === 'PLAYING'}
-    <div class="stage" use:swipe={handleInput}>
-      <div class="timer-track">
-        <div class="timer-fill" style:width="{(timeLeft / TIME_LIMIT) * 100}%"></div>
-      </div>
+    <!-- Card + surrounding WASD hints -->
+    <div class="card-arena">
+      <div class="hint hint-up"    class:active={lastInputDirection === 'UP'}>W</div>
+      <div class="hint hint-left"  class:active={lastInputDirection === 'LEFT'}>A</div>
+      <div class="hint hint-right" class:active={lastInputDirection === 'RIGHT'}>D</div>
+      <div class="hint hint-down"  class:active={lastInputDirection === 'DOWN'}>S</div>
 
-      <div class="card" class:correct={lastFeedback === 'CORRECT'} class:wrong={lastFeedback === 'WRONG'}>
-        <div class="equation">
-          {currentCard.equation}
-        </div>
-      </div>
-
-      <div class="direction-hints">
-        <span class="hint up" class:active={lastInputDirection === 'UP'}>W</span>
-        <span class="hint left" class:active={lastInputDirection === 'LEFT'}>A</span>
-        <span class="hint down" class:active={lastInputDirection === 'DOWN'}>S</span>
-        <span class="hint right" class:active={lastInputDirection === 'RIGHT'}>D</span>
+      <div
+        class="card"
+        class:correct={lastFeedback === 'CORRECT'}
+        class:wrong={lastFeedback === 'WRONG'}
+        aria-live="polite"
+      >
+        {#if gameState === 'PLAYING'}
+          <div class="equation">{@html currentCard.equationHtml}</div>
+        {/if}
       </div>
     </div>
 
-  {:else if gameState === 'GAME_OVER'}
-    <div class="overlay game-over">
-      <h2 class="error-text">
-        {gameOverReason === 'TIMEOUT' ? "OUT OF TIME!" : "WRONG DIRECTION!"}
-      </h2>
-      <p>Session Score: <strong>{score}</strong></p>
-      <button onclick={startGame}>TRY AGAIN</button>
-    </div>
-  {/if}
+    <!-- Menu overlay -->
+    {#if gameState === 'MENU'}
+      <div class="overlay" role="dialog" aria-modal="true">
+        <h2 class="overlay-title">Parabola Sort</h2>
+
+        {#if isReverseMode}
+          <p class="overlay-body">
+            Flick or press <kbd>W A S D</kbd> in the direction <strong>opposite</strong> to where the parabola opens.
+          </p>
+          <span class="mode-badge">Reversed mode active</span>
+        {:else}
+          <p class="overlay-body">
+            Flick or press <kbd>W A S D</kbd> in the direction the parabola opens.
+          </p>
+        {/if}
+
+        <button class="btn-primary" onclick={startGame}>Start Session</button>
+      </div>
+
+    <!-- Game Over overlay -->
+    {:else if gameState === 'GAME_OVER'}
+      <div class="overlay" role="dialog" aria-modal="true">
+        <p class="over-reason" class:is-timeout={gameOverReason === 'TIMEOUT'} class:is-wrong={gameOverReason === 'WRONG_DIRECTION'}>
+          {gameOverReason === 'TIMEOUT' ? 'Out of time' : 'Wrong direction'}
+        </p>
+        <p class="over-score">
+          {score === 0
+            ? 'No cards sorted this session.'
+            : `You sorted ${score} ${score === 1 ? 'card' : 'cards'} correctly.`}
+        </p>
+        <button class="btn-primary" onclick={startGame}>Try Again</button>
+      </div>
+    {/if}
+
+  </div>
 </main>
 
 <style>
-  :global(body) {
+  :global(html), :global(body) {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  :root {
+    --md-sys-color-primary:            #1A4B84;
+    --md-sys-color-on-primary:         #FFFFFF;
+    --md-sys-color-primary-container:  #DCE5F5;
+    --md-sys-color-secondary:          #FFC857;
+    --md-sys-color-on-secondary:       #1A1A1A;
+    --md-sys-color-error:              #DC2626;
+    --md-sys-color-on-error:           #FFFFFF;
+    --md-sys-color-background:         #F8FAFC;
+    --md-sys-color-surface:            #FFFFFF;
+    --md-sys-color-on-surface:         #1E293B;
+    --md-sys-color-surface-variant:    #F1F5F9;
+    --md-sys-color-on-surface-variant: #64748B;
+    --md-sys-color-completed:          #059669;
+
+    --md-sys-typescale-heading: 'Outfit', system-ui, sans-serif;
+    --md-sys-typescale-body:    'Plus Jakarta Sans', system-ui, sans-serif;
+
+    --md-sys-shape-corner-small:  8px;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large:  16px;
+    --md-sys-shape-corner-full:   9999px;
+
+    --md-sys-spacing-xs: 0.25rem;
+    --md-sys-spacing-sm: 0.5rem;
+    --md-sys-spacing-md: 1rem;
+    --md-sys-spacing-lg: 1.5rem;
+    --md-sys-spacing-xl: 2rem;
+
+    --md-sys-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --md-sys-elevation-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  /* ── Shell ─────────────────────────────────────── */
+
+  .module-shell {
+    width: 100%;
+    height: 100dvh;
     margin: 0;
     overflow: hidden;
-    background: #121212;
-    color: white;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .game-container {
-    width: 100vw;
-    height: 100vh;
     display: flex;
     flex-direction: column;
-    touch-action: none;
+    background: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-sys-typescale-body);
+    -webkit-font-smoothing: antialiased;
   }
 
-  header {
-    padding: 1rem;
+  /* ── Header ─────────────────────────────────────── */
+
+  .game-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: rgba(255,255,255,0.05);
+    justify-content: space-between;
+    gap: var(--md-sys-spacing-md);
+    padding: var(--md-sys-spacing-sm) var(--md-sys-spacing-md);
+    background: var(--md-sys-color-surface);
+    border-bottom: 1px solid var(--md-sys-color-surface-variant);
+    flex-shrink: 0;
   }
+
+  .score-pill {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-primary);
+    padding: 0.3rem 0.875rem;
+    border-radius: var(--md-sys-shape-corner-full);
+    min-width: 72px;
+  }
+
+  .score-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+  }
+
+  .score-value {
+    font-family: var(--md-sys-typescale-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .game-title {
+    font-family: var(--md-sys-typescale-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--md-sys-color-primary);
+    letter-spacing: -0.2px;
+  }
+
+  /* Mode toggle */
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--md-sys-spacing-xs);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .mode-toggle.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .mode-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .toggle-track {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background: var(--md-sys-color-surface-variant);
+    border: 1.5px solid var(--md-sys-color-on-surface-variant);
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: background 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .mode-toggle input:checked + .toggle-track {
+    background: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--md-sys-color-on-surface-variant);
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .mode-toggle input:checked + .toggle-track .toggle-thumb {
+    transform: translateX(16px);
+    background: var(--md-sys-color-on-primary);
+  }
+
+  .toggle-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface-variant);
+    white-space: nowrap;
+  }
+
+  /* ── Stage ──────────────────────────────────────── */
 
   .stage {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     position: relative;
-  }
-
-  .card {
-    width: 300px;
-    height: 400px;
-    background: #1e1e1e;
-    border: 3px solid #333;
-    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
-    transition: transform 0.1s, border-color 0.1s;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    overflow: hidden;
+    touch-action: none;
   }
 
-  .card.correct { border-color: #4caf50; transform: scale(1.05); }
-  .card.wrong { border-color: #f44336; transform: scale(0.95); }
+  /* ── Timer ──────────────────────────────────────── */
 
   .timer-track {
-    width: 300px;
-    height: 6px;
-    background: #222;
-    border-radius: 3px;
-    margin-bottom: 2.5rem;
-    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--md-sys-color-surface-variant);
+    z-index: 1;
   }
 
   .timer-fill {
     height: 100%;
-    background: #2196f3;
+    background: var(--md-sys-color-primary);
+    transition: width 0.01s linear, background 0.4s ease;
   }
 
-  .direction-hints {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    pointer-events: none;
-    opacity: 0.3;
-  }
+  .timer-fill.warn   { background: var(--md-sys-color-secondary); }
+  .timer-fill.danger { background: var(--md-sys-color-error); }
 
-  .hint {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    border: 2px solid #555;
-    border-radius: 8px;
+  /* ── Card Arena ─────────────────────────────────── */
+
+  .card-arena {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.1s;
   }
 
-  .hint.active { 
-    background: white; 
-    color: black; 
-    transform: scale(1.3); 
-    opacity: 1; 
+  .card {
+    width: clamp(220px, 44vw, 300px);
+    height: clamp(130px, 28vh, 200px);
+    background: var(--md-sys-color-surface);
+    border: 2px solid var(--md-sys-color-surface-variant);
+    border-radius: var(--md-sys-shape-corner-large);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--md-sys-elevation-2);
+    transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
   }
 
-  .up { top: 0; left: 50%; transform: translateX(-50%); }
-  .down { bottom: 0; left: 50%; transform: translateX(-50%); }
-  .left { left: 0; top: 50%; transform: translateY(-50%); }
-  .right { right: 0; top: 50%; transform: translateY(-50%); }
+  .card.correct {
+    border-color: var(--md-sys-color-completed);
+    transform: scale(1.04);
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.2);
+  }
+
+  .card.wrong {
+    border-color: var(--md-sys-color-error);
+    transform: scale(0.97);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.2);
+  }
+
+  .equation {
+    font-family: var(--md-sys-typescale-heading);
+    font-size: clamp(1.4rem, 4.5vw, 2rem);
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface);
+    text-align: center;
+    padding: var(--md-sys-spacing-md);
+    user-select: none;
+    line-height: 1.2;
+  }
+
+  /* sup rendered via {@html} — target with :global */
+  .equation :global(sup) {
+    font-size: 0.58em;
+    vertical-align: super;
+  }
+
+  /* ── WASD Hints ─────────────────────────────────── */
+
+  .hint {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid var(--md-sys-color-on-surface-variant);
+    border-radius: var(--md-sys-shape-corner-small);
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-sys-typescale-heading);
+    font-weight: 700;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.45;
+    pointer-events: none;
+    user-select: none;
+    /* transition omits transform — each .hint-x controls its own */
+    transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s;
+  }
+
+  /* Positional placement — transform handles centering on each axis */
+  .hint-up   { top: -48px;  left: 50%; transform: translateX(-50%); }
+  .hint-down { bottom: -48px; left: 50%; transform: translateX(-50%); }
+  .hint-left { left: -48px;  top: 50%; transform: translateY(-50%); }
+  .hint-right { right: -48px; top: 50%; transform: translateY(-50%); }
+
+  /* Active state — must combine the centering transform with scale */
+  .hint.active {
+    opacity: 1;
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    border-color: var(--md-sys-color-primary);
+  }
+
+  .hint-up.active    { transform: translateX(-50%) scale(1.18); }
+  .hint-down.active  { transform: translateX(-50%) scale(1.18); }
+  .hint-left.active  { transform: translateY(-50%) scale(1.18); }
+  .hint-right.active { transform: translateY(-50%) scale(1.18); }
+
+  /* ── Overlay (Menu + Game Over) ─────────────────── */
 
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: rgba(248, 250, 252, 0.96);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    gap: var(--md-sys-spacing-sm);
+    padding: var(--md-sys-spacing-xl);
+    z-index: 10;
+    text-align: center;
+    backdrop-filter: blur(2px);
   }
 
-  .error-text { color: #f44336; }
-  .warning { color: #ff9800; }
+  .overlay-title {
+    font-family: var(--md-sys-typescale-heading);
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 700;
+    color: var(--md-sys-color-primary);
+    margin: 0 0 var(--md-sys-spacing-xs);
+  }
 
-  button {
-    margin-top: 2rem;
-    padding: 0.8rem 2.5rem;
-    font-size: 1.1rem;
-    font-weight: bold;
+  .overlay-body {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+    max-width: 260px;
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  .overlay-body :global(kbd) {
+    font-family: var(--md-sys-typescale-heading);
+    font-weight: 700;
+    background: var(--md-sys-color-surface-variant);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .mode-badge {
+    background: var(--md-sys-color-secondary);
+    color: var(--md-sys-color-on-secondary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.25rem 0.875rem;
+    border-radius: var(--md-sys-shape-corner-full);
+  }
+
+  .over-reason {
+    font-family: var(--md-sys-typescale-heading);
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .over-reason.is-timeout  { color: var(--md-sys-color-secondary); }
+  .over-reason.is-wrong    { color: var(--md-sys-color-error); }
+
+  .over-score {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  /* ── Primary Button ─────────────────────────────── */
+
+  .btn-primary {
+    margin-top: var(--md-sys-spacing-sm);
+    padding: 0.7rem 2rem;
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
     border: none;
-    border-radius: 30px;
-    background: #2196f3;
-    color: white;
+    border-radius: var(--md-sys-shape-corner-full);
+    font-family: var(--md-sys-typescale-body);
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
+    box-shadow: var(--md-sys-elevation-1);
+    transition: box-shadow 0.2s, transform 0.12s;
   }
 
-  .score-pill {
-    background: #333;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    font-weight: bold;
-  }
+  .btn-primary:hover  { box-shadow: var(--md-sys-elevation-2); }
+  .btn-primary:active { transform: scale(0.97); }
 </style>
