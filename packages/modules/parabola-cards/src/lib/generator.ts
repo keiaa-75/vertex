@@ -1,42 +1,45 @@
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
 export interface ParabolaCard {
-  equation: string;
+  equationHtml: string;
   direction: Direction;
 }
 
-const randomInt = (min: number, max: number) => 
-  Math.floor(Math.random() * (max - min + 1)) + min;
+const P_VALUES = [1, 2, 3, 4, -1, -2, -3, -4] as const;
+type PValue = typeof P_VALUES[number];
 
-const formatTerm = (variable: string, value: number): string => {
-  if (value === 0) return variable;
-  const sign = value > 0 ? '-' : '+';
-  return `(${variable} ${sign} ${Math.abs(value)})`;
-};
+// U+2212 MINUS SIGN — cleaner math display than a hyphen
+const MINUS = '−';
+
+function fmtDirect(coefficient: number): string {
+  return coefficient < 0
+    ? `${MINUS}${Math.abs(coefficient)}`
+    : `${coefficient}`;
+}
+
+function fmtFactored(p: PValue): string {
+  const pStr = p < 0 ? `${MINUS}${Math.abs(p)}` : `${p}`;
+  return `4(${pStr})`;
+}
 
 export function generateCard(): ParabolaCard {
-  const isXSquared = Math.random() > 0.5;
-  const p = [1, 2, 3, 4, -1, -2, -3, -4][Math.floor(Math.random() * 8)];
-  const h = randomInt(-5, 5);
-  const k = randomInt(-5, 5);
-  const coefficient = 4 * p;
+  const isXSquared = Math.random() < 0.5;
+  const p = P_VALUES[Math.floor(Math.random() * P_VALUES.length)];
+  const useFactored = Math.random() < 0.5;
 
-  let equation: string;
+  const coeffStr = useFactored ? fmtFactored(p) : fmtDirect(4 * p);
+
+  let equationHtml: string;
   let direction: Direction;
 
   if (isXSquared) {
-    // (x - h)^2 = 4p(y - k)
-    const left = `${formatTerm('x', h)}^2`;
-    const right = `${coefficient}${formatTerm('y', k)}`;
-    equation = `${left} = ${right}`;
+    // (x − h)² = 4p(y − k), vertex form omitted — pure standard form
+    equationHtml = `x<sup>2</sup> = ${coeffStr}y`;
     direction = p > 0 ? 'UP' : 'DOWN';
   } else {
-    // (y - k)^2 = 4p(x - h)
-    const left = `${formatTerm('y', k)}^2`;
-    const right = `${coefficient}${formatTerm('x', h)}`;
-    equation = `${left} = ${right}`;
+    equationHtml = `y<sup>2</sup> = ${coeffStr}x`;
     direction = p > 0 ? 'RIGHT' : 'LEFT';
   }
 
-  return { equation, direction };
+  return { equationHtml, direction };
 }
