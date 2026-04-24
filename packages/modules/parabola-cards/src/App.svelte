@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { generateCard, type Direction, type ParabolaCard } from './lib/generator';
   import { swipe } from './lib/swipe';
+  import { audio } from './lib/audio';
   import {
     auth,
     db,
@@ -83,6 +84,7 @@
   });
 
   function startGame() {
+    audio.ensureContext();
     score = 0;
     lastFeedback = null;
     lastInputDirection = null;
@@ -128,9 +130,11 @@
       score++;
       lastFeedback = 'CORRECT';
       clearInterval(timerInterval);
+      audio.play('success');
       setTimeout(nextCard, 160);
     } else {
       lastFeedback = 'WRONG';
+      audio.play('warning');
       endGame('WRONG_DIRECTION');
     }
   }
