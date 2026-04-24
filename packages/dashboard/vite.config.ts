@@ -24,7 +24,7 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
-      '/modules/parabola/cards': {
+      '/modules/parabola/sort': {
         target: 'http://localhost:5175',
         changeOrigin: true,
         ws: true,

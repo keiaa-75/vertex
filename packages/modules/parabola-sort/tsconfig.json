@@ -1,17 +1,17 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": ".",
+    "outDir": "../parabola-sort/dist",
+    "rootDir": "../parabola-sort",
     "types": ["node"],
     "paths": {
       "@vertex/shared": ["../../shared/src/lib"]
     }
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.svelte",
-    "vite.config.ts",
+    "../parabola-sort/src/**/*.ts",
+    "../parabola-sort/src/**/*.svelte",
+    "../parabola-sort/vite.config.ts",
     "../../shared/src/env.d.ts"
   ],
   "references": [{ "path": "../../shared" }]

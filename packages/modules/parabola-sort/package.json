@@ -1,5 +1,5 @@
 {
-  "name": "@vertex/parabola-cards",
+  "name": "@vertex/parabola-sort",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -21,6 +21,6 @@
     "vite": "^8.0.9"
   },
   "vertex": {
-    "githubPagesPath": "/modules/parabola/cards/"
+    "githubPagesPath": "/modules/parabola/sort/"
   }
 }
