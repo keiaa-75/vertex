@@ -24,3 +24,6 @@ export type { UserProfile, UserState } from './stores/user';
 // Curriculum
 export { curriculumStore, loadCurriculum, buildLessonMap } from './stores/curriculum';
 export type { CurriculumState, Topic, Lesson } from './stores/curriculum';
+
+export { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+export { onAuthStateChanged, type User } from 'firebase/auth';

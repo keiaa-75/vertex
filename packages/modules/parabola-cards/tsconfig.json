@@ -3,7 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": ".",
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@vertex/shared": ["../../shared/src/lib"]
+    }
   },
   "include": [
     "src/**/*.ts",

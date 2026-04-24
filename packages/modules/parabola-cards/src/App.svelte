@@ -1,7 +1,18 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { generateCard, type Direction, type ParabolaCard } from './lib/generator';
   import { swipe } from './lib/swipe';
-
+  import {
+    auth,
+    db,
+    doc,
+    getDoc,
+    setDoc,
+    serverTimestamp,
+    onAuthStateChanged,
+    type User
+  } from '@vertex/shared';
+  
   let gameState = $state<'MENU' | 'PLAYING' | 'GAME_OVER'>('MENU');
   let currentCard = $state<ParabolaCard>(generateCard());
   let score = $state(0);
@@ -14,10 +25,63 @@
   const TIME_LIMIT = 3000;
   let timerInterval: number | undefined;
 
+  let currentUser = $state<User | null>(null);
+  let personalBest = $state(0);
+  let highScoreLoaded = $state(false);
+
   let timerPct = $derived(timeLeft / TIME_LIMIT);
   let timerColorClass = $derived(
     timerPct > 0.55 ? '' : timerPct > 0.28 ? 'warn' : 'danger'
   );
+
+  let displayBest = $derived(
+    personalBest > 0 ? personalBest : null
+  );
+
+  async function loadHighScore(uid: string) {
+    try {
+      const ref = doc(db, 'highScores', uid);
+      const snap = await getDoc(ref);
+      if (snap.exists() && typeof snap.data().score === 'number') {
+        personalBest = snap.data().score;
+      } else {
+        personalBest = 0;
+      }
+    } catch (e) {
+      console.error('Failed to load high score:', e);
+    } finally {
+      highScoreLoaded = true;
+    }
+  }
+
+  async function submitHighScore(finalScore: number) {
+    if (!currentUser || finalScore <= personalBest) return;
+
+    try {
+      const ref = doc(db, 'highScores', currentUser.uid);
+      await setDoc(ref, {
+        score: finalScore,
+        updatedAt: serverTimestamp(),
+        displayName: currentUser.displayName || 'Unknown'
+      }, { merge: true });
+      personalBest = finalScore;
+    } catch (e) {
+      console.error('Failed to save high score:', e);
+    }
+  }
+
+  onMount(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        loadHighScore(user.uid);
+      } else {
+        personalBest = 0;
+        highScoreLoaded = true;
+      }
+    });
+    return unsubscribe;
+  });
 
   function startGame() {
     score = 0;
@@ -46,6 +110,7 @@
     clearInterval(timerInterval);
     gameState = 'GAME_OVER';
     gameOverReason = reason;
+    submitHighScore(score);
   }
 
   const opposites: Record<Direction, Direction> = {
@@ -115,10 +180,8 @@
     </div>
   </header>
 
-  <!-- Wrapper so overlays can live outside the swipe‑captured stage -->
   <div class="game-container">
     <div class="stage" use:swipe={handleInput}>
-      <!-- Timer – full‑width strip pinned to top of stage -->
       <div class="timer-track" aria-hidden="true">
         <div
           class="timer-fill {timerColorClass}"
@@ -126,7 +189,6 @@
         ></div>
       </div>
 
-      <!-- Card + surrounding WASD hints -->
       <div class="card-arena">
         <div class="hint hint-up"    class:active={lastInputDirection === 'UP'}>W</div>
         <div class="hint hint-left"  class:active={lastInputDirection === 'LEFT'}>A</div>
@@ -146,7 +208,6 @@
       </div>
     </div>
 
-    <!-- Overlays – moved outside .stage to avoid pointer capture -->
     {#if gameState === 'MENU'}
       <div class="overlay" role="dialog" aria-modal="true">
         <h2 class="overlay-title">Parabola Sort</h2>
@@ -162,8 +223,19 @@
           </p>
         {/if}
 
+        {#if currentUser && highScoreLoaded}
+          {#if displayBest !== null}
+            <p class="best-score">Your best: {displayBest}</p>
+          {:else}
+            <p class="best-score new-player">No high score yet</p>
+          {/if}
+        {:else if !currentUser}
+          <p class="best-score sign-in-hint">Sign in to save your best score</p>
+        {/if}
+
         <button class="btn-primary" onclick={startGame}>Start Session</button>
       </div>
+
     {:else if gameState === 'GAME_OVER'}
       <div class="overlay" role="dialog" aria-modal="true">
         <p class="over-reason" class:is-timeout={gameOverReason === 'TIMEOUT'} class:is-wrong={gameOverReason === 'WRONG_DIRECTION'}>
@@ -174,6 +246,13 @@
             ? 'No cards sorted this session.'
             : `You sorted ${score} ${score === 1 ? 'card' : 'cards'} correctly.`}
         </p>
+        {#if currentUser && highScoreLoaded}
+          {#if personalBest > 0}
+            <p class="best-score">
+              {score >= personalBest ? `New personal best! ${score}` : `Best: ${personalBest}`}
+            </p>
+          {/if}
+        {/if}
         <button class="btn-primary" onclick={startGame}>Try Again</button>
       </div>
     {/if}
@@ -492,6 +571,23 @@
     font-weight: 700;
     padding: 0.25rem 0.875rem;
     border-radius: var(--md-sys-shape-corner-full);
+  }
+
+  .best-score {
+    font-weight: 600;
+    color: var(--md-sys-color-primary);
+    font-size: 0.95rem;
+    margin: 0.25rem 0 0;
+  }
+
+  .new-player {
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  .sign-in-hint {
+    font-size: 0.82rem;
+    color: var(--md-sys-color-on-surface-variant);
   }
 
   .over-reason {
