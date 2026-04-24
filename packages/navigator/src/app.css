@@ -1,0 +1,85 @@
+/* ============================================================
+   NAVIGATOR — embed styles
+   Transparent background so the button sits flush on any
+   Google Sites page background without a white box around it.
+   ============================================================ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.navigator-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  min-height: 72px;
+}
+
+/* ── Proceed button ─────────────────────────────────────── */
+.nav-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-family: var(--md-sys-typescale-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s, background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.nav-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Active state */
+.nav-btn.active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  box-shadow: var(--md-sys-elevation-1);
+}
+
+.nav-btn.active:hover {
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+/* Locked state */
+.nav-btn.locked {
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ── Hint text ──────────────────────────────────────────── */
+.nav-hint {
+  font-family: var(--md-sys-typescale-body);
+  font-size: 0.8rem;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Loading / unauthenticated ──────────────────────────── */
+.nav-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--md-sys-color-primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

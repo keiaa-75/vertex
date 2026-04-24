@@ -17,9 +17,10 @@
   },
   "references": [
     { "path": "./packages/dashboard" },
-    { "path": "./packages/module-template" },
+    { "path": "./packages/navigator" },
     { "path": "./packages/shared" },
-    { "path": "./packages/modules/parabola-anatomy" }
+    { "path": "./packages/modules/parabola-anatomy" },
+    { "path": "./packages/modules/parabola-sort" },
   ],
   "files": []
 }
