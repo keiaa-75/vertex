@@ -2,7 +2,6 @@
   import { generateCard, type Direction, type ParabolaCard } from './lib/generator';
   import { swipe } from './lib/swipe';
 
-  // --- State ---
   let gameState = $state<'MENU' | 'PLAYING' | 'GAME_OVER'>('MENU');
   let currentCard = $state<ParabolaCard>(generateCard());
   let score = $state(0);
@@ -15,13 +14,11 @@
   const TIME_LIMIT = 3000;
   let timerInterval: number | undefined;
 
-  // Derived
   let timerPct = $derived(timeLeft / TIME_LIMIT);
   let timerColorClass = $derived(
     timerPct > 0.55 ? '' : timerPct > 0.28 ? 'warn' : 'danger'
   );
 
-  // --- Actions ---
   function startGame() {
     score = 0;
     lastFeedback = null;
@@ -90,60 +87,66 @@
 <svelte:window onkeydown={handleKeyDown} />
 
 <main class="module-shell">
-
-  <!-- Header -->
   <header class="game-header">
     <div class="score-pill">
       <span class="score-label">Score</span>
       <span class="score-value">{score}</span>
     </div>
 
-    <span class="game-title">Parabola Sort</span>
-
-    <label class="mode-toggle" class:disabled={gameState === 'PLAYING'}>
-      <input
-        type="checkbox"
-        bind:checked={isReverseMode}
+    <div class="segmented-control" class:disabled={gameState === 'PLAYING'}>
+      <button
+        class="segment"
+        class:active={!isReverseMode}
         disabled={gameState === 'PLAYING'}
-      />
-      <span class="toggle-track">
-        <span class="toggle-thumb"></span>
-      </span>
-      <span class="toggle-label">{isReverseMode ? 'Reversed' : 'Normal'}</span>
-    </label>
+        onclick={() => (isReverseMode = false)}
+      >
+        <span class="segment-full">Normal</span>
+        <span class="segment-short">N</span>
+      </button>
+      <button
+        class="segment"
+        class:active={isReverseMode}
+        disabled={gameState === 'PLAYING'}
+        onclick={() => (isReverseMode = true)}
+      >
+        <span class="segment-full">Reverse</span>
+        <span class="segment-short">R</span>
+      </button>
+    </div>
   </header>
 
-  <!-- Stage -->
-  <div class="stage" use:swipe={handleInput}>
+  <!-- Wrapper so overlays can live outside the swipe‑captured stage -->
+  <div class="game-container">
+    <div class="stage" use:swipe={handleInput}>
+      <!-- Timer – full‑width strip pinned to top of stage -->
+      <div class="timer-track" aria-hidden="true">
+        <div
+          class="timer-fill {timerColorClass}"
+          style:width="{timerPct * 100}%"
+        ></div>
+      </div>
 
-    <!-- Timer — full-width strip pinned to top of stage -->
-    <div class="timer-track" aria-hidden="true">
-      <div
-        class="timer-fill {timerColorClass}"
-        style:width="{timerPct * 100}%"
-      ></div>
-    </div>
+      <!-- Card + surrounding WASD hints -->
+      <div class="card-arena">
+        <div class="hint hint-up"    class:active={lastInputDirection === 'UP'}>W</div>
+        <div class="hint hint-left"  class:active={lastInputDirection === 'LEFT'}>A</div>
+        <div class="hint hint-right" class:active={lastInputDirection === 'RIGHT'}>D</div>
+        <div class="hint hint-down"  class:active={lastInputDirection === 'DOWN'}>S</div>
 
-    <!-- Card + surrounding WASD hints -->
-    <div class="card-arena">
-      <div class="hint hint-up"    class:active={lastInputDirection === 'UP'}>W</div>
-      <div class="hint hint-left"  class:active={lastInputDirection === 'LEFT'}>A</div>
-      <div class="hint hint-right" class:active={lastInputDirection === 'RIGHT'}>D</div>
-      <div class="hint hint-down"  class:active={lastInputDirection === 'DOWN'}>S</div>
-
-      <div
-        class="card"
-        class:correct={lastFeedback === 'CORRECT'}
-        class:wrong={lastFeedback === 'WRONG'}
-        aria-live="polite"
-      >
-        {#if gameState === 'PLAYING'}
-          <div class="equation">{@html currentCard.equationHtml}</div>
-        {/if}
+        <div
+          class="card"
+          class:correct={lastFeedback === 'CORRECT'}
+          class:wrong={lastFeedback === 'WRONG'}
+          aria-live="polite"
+        >
+          {#if gameState === 'PLAYING'}
+            <div class="equation">{@html currentCard.equationHtml}</div>
+          {/if}
+        </div>
       </div>
     </div>
 
-    <!-- Menu overlay -->
+    <!-- Overlays – moved outside .stage to avoid pointer capture -->
     {#if gameState === 'MENU'}
       <div class="overlay" role="dialog" aria-modal="true">
         <h2 class="overlay-title">Parabola Sort</h2>
@@ -161,8 +164,6 @@
 
         <button class="btn-primary" onclick={startGame}>Start Session</button>
       </div>
-
-    <!-- Game Over overlay -->
     {:else if gameState === 'GAME_OVER'}
       <div class="overlay" role="dialog" aria-modal="true">
         <p class="over-reason" class:is-timeout={gameOverReason === 'TIMEOUT'} class:is-wrong={gameOverReason === 'WRONG_DIRECTION'}>
@@ -176,7 +177,6 @@
         <button class="btn-primary" onclick={startGame}>Try Again</button>
       </div>
     {/if}
-
   </div>
 </main>
 
@@ -221,8 +221,6 @@
     --md-sys-elevation-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
 
-  /* ── Shell ─────────────────────────────────────── */
-
   .module-shell {
     width: 100%;
     height: 100dvh;
@@ -235,8 +233,6 @@
     font-family: var(--md-sys-typescale-body);
     -webkit-font-smoothing: antialiased;
   }
-
-  /* ── Header ─────────────────────────────────────── */
 
   .game-header {
     display: flex;
@@ -251,7 +247,7 @@
 
   .score-pill {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.3rem;
     background: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-primary);
@@ -266,96 +262,83 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     opacity: 0.7;
+    line-height: 1;
   }
 
   .score-value {
     font-family: var(--md-sys-typescale-heading);
     font-size: 1.05rem;
     font-weight: 700;
+    line-height: 1;
   }
 
-  .game-title {
-    font-family: var(--md-sys-typescale-heading);
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--md-sys-color-primary);
-    letter-spacing: -0.2px;
-  }
-
-  /* Mode toggle */
-  .mode-toggle {
-    display: flex;
+  .segmented-control {
+    display: inline-flex;
     align-items: center;
-    gap: var(--md-sys-spacing-xs);
-    cursor: pointer;
-    user-select: none;
+    border: 1.5px solid var(--md-sys-color-on-surface-variant);
+    border-radius: var(--md-sys-shape-corner-full);
+    overflow: hidden;
+    background: var(--md-sys-color-surface-variant);
   }
 
-  .mode-toggle.disabled {
+  .segmented-control.disabled {
     opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .mode-toggle input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
     pointer-events: none;
   }
 
-  .toggle-track {
-    position: relative;
-    width: 36px;
-    height: 20px;
-    background: var(--md-sys-color-surface-variant);
-    border: 1.5px solid var(--md-sys-color-on-surface-variant);
-    border-radius: var(--md-sys-shape-corner-full);
-    transition: background 0.2s, border-color 0.2s;
-    flex-shrink: 0;
-  }
-
-  .mode-toggle input:checked + .toggle-track {
-    background: var(--md-sys-color-primary);
-    border-color: var(--md-sys-color-primary);
-  }
-
-  .toggle-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background: var(--md-sys-color-on-surface-variant);
-    transition: transform 0.2s, background 0.2s;
-  }
-
-  .mode-toggle input:checked + .toggle-track .toggle-thumb {
-    transform: translateX(16px);
-    background: var(--md-sys-color-on-primary);
-  }
-
-  .toggle-label {
+  .segment {
+    all: unset;
+    padding: 0.3rem 0.75rem;
+    font-family: var(--md-sys-typescale-body);
     font-size: 0.78rem;
     font-weight: 600;
     color: var(--md-sys-color-on-surface-variant);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    border-right: 1px solid var(--md-sys-color-on-surface-variant);
+    line-height: 1.3;
     white-space: nowrap;
   }
 
-  /* ── Stage ──────────────────────────────────────── */
+  .segment:last-child {
+    border-right: none;
+  }
 
-  .stage {
+  .segment.active {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+  }
+
+  .segment:disabled {
+    cursor: not-allowed;
+  }
+
+  .segment-short { display: none; }
+  .segment-full { display: inline; }
+
+  @media (max-width: 480px) {
+    .segment-short { display: inline; }
+    .segment-full { display: none; }
+    .segment {
+      padding: 0.3rem 0.55rem;
+    }
+  }
+
+  .game-container {
     flex: 1;
     position: relative;
+    overflow: hidden;
+  }
+
+  .stage {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
     touch-action: none;
   }
-
-  /* ── Timer ──────────────────────────────────────── */
 
   .timer-track {
     position: absolute;
@@ -375,8 +358,6 @@
 
   .timer-fill.warn   { background: var(--md-sys-color-secondary); }
   .timer-fill.danger { background: var(--md-sys-color-error); }
-
-  /* ── Card Arena ─────────────────────────────────── */
 
   .card-arena {
     position: relative;
@@ -421,13 +402,10 @@
     line-height: 1.2;
   }
 
-  /* sup rendered via {@html} — target with :global */
   .equation :global(sup) {
     font-size: 0.58em;
     vertical-align: super;
   }
-
-  /* ── WASD Hints ─────────────────────────────────── */
 
   .hint {
     position: absolute;
@@ -446,17 +424,14 @@
     opacity: 0.45;
     pointer-events: none;
     user-select: none;
-    /* transition omits transform — each .hint-x controls its own */
     transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s;
   }
 
-  /* Positional placement — transform handles centering on each axis */
   .hint-up   { top: -48px;  left: 50%; transform: translateX(-50%); }
   .hint-down { bottom: -48px; left: 50%; transform: translateX(-50%); }
   .hint-left { left: -48px;  top: 50%; transform: translateY(-50%); }
   .hint-right { right: -48px; top: 50%; transform: translateY(-50%); }
 
-  /* Active state — must combine the centering transform with scale */
   .hint.active {
     opacity: 1;
     background: var(--md-sys-color-primary);
@@ -468,8 +443,6 @@
   .hint-down.active  { transform: translateX(-50%) scale(1.18); }
   .hint-left.active  { transform: translateY(-50%) scale(1.18); }
   .hint-right.active { transform: translateY(-50%) scale(1.18); }
-
-  /* ── Overlay (Menu + Game Over) ─────────────────── */
 
   .overlay {
     position: absolute;
@@ -536,8 +509,6 @@
     font-size: 0.9rem;
     margin: 0;
   }
-
-  /* ── Primary Button ─────────────────────────────── */
 
   .btn-primary {
     margin-top: var(--md-sys-spacing-sm);
