@@ -1,7 +1,7 @@
 <script lang="ts">
   import { parts } from './lib/partsData.ts';
   import { usePointerDrag } from './lib/usePointerDrag.ts';
-  import { playTone, ensureAudioContext } from './lib/audio.ts';
+  import { audio } from './lib/audio.ts';
 
   type SlotState = { id: string; locked: boolean };
 
@@ -11,13 +11,13 @@
   function handleDrop(partId: string, targetSlotId: string | null) {
     const part = parts.find(p => p.id === partId)!;
     if (!targetSlotId || targetSlotId !== part.slotId) {
-      playTone('warning');
+      audio.play('warning');
       return;
     }
     const slot = slots.find(s => s.id === targetSlotId)!;
     slot.locked = true;
     activePart  = part;
-    playTone('success');
+    audio.play('success');
   }
 
   function isLocked(slotId: string): boolean {
@@ -38,7 +38,7 @@
 
 <svelte:options css="injected" />
 
-<main class="module-shell" onpointerdown={() => ensureAudioContext()}>
+<main class="module-shell" onpointerdown={() => audio.ensureContext()}>
   <div class="diagram-area">
     <svg
       viewBox="0 0 600 420"
