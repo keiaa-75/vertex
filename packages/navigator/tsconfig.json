@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "types": ["node"],
     "paths": {
       "@vertex/shared": ["../shared/src/lib"]
@@ -11,8 +11,7 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.svelte",
-    "vite.config.ts",
     "../shared/src/env.d.ts"
-, "main.ts"  ],
+  ],
   "references": [{ "path": "../shared" }]
 }

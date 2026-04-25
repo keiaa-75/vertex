@@ -1,7 +1,7 @@
 import { mount } from 'svelte'
 import '@vertex/shared/vertex.css'
-import './src/app.css'
-import App from './src/App.svelte'
+import './app.css'
+import App from './App.svelte'
 
 const app = mount(App, {
     target: document.getElementById('app')!

@@ -13,28 +13,48 @@
   const params = new URLSearchParams(window.location.search);
 
   const lessonId = params.get('lessonId') ?? '';
-  const gate = (params.get('gate') ?? '') as 'viewed' | 'interacted' | 'completed';
-  const next = params.get('next') ?? '#';
-  const label = params.get('label') ?? 'Continue →';
+  const gate     = (params.get('gate') ?? '') as 'viewed' | 'interacted' | 'completed';
+  const next     = params.get('next') ?? '#';
+  const label    = params.get('label') ?? 'Continue →';
+  // Separate home URL for unauthenticated redirect — always points to the
+  // Google Sites home page where the dashboard embed lives.
+  const home     = params.get('home') ?? '/';
 
   // ---- State -----------------------------------------------------------
-  let user = $state<User | null>(null);
-  let authReady = $state(false);
-  let gateMet = $state<boolean | null>(null);
+  let user       = $state<User | null>(null);
+  let authReady  = $state(false);
+  let gateMet    = $state<boolean | null>(null);
   let loadingDoc = $state(false);
 
-  let unsubAuth = $state<(() => void) | null>(null);
-  let unsubDoc = $state<(() => void) | null>(null);
+  // Plain lets — cleanup functions have no reason to be reactive
+  let unsubAuth: (() => void) | null = null;
+  let unsubDoc:  (() => void) | null = null;
 
-  // ---- Derived hint text ------------------------------------------------
-  const hintText = $derived(() => {
-    if (!lessonId || !gate || !next) return 'Page misconfiguration';
+  // ---- Derived hint text -----------------------------------------------
+  // $derived.by is the correct Svelte 5 idiom for multi-line derived logic.
+  // $derived(() => { ... }) would give a derived holding the *function*
+  // itself, not its return value.
+  const hintText = $derived.by(() => {
+    if (!lessonId || !gate || !next) return 'Page misconfiguration.';
     switch (gate) {
-      case 'viewed':     return 'Submit the pre‑test above to continue';
-      case 'interacted': return 'Complete the activity above to continue';
-      case 'completed':  return 'Pass the post‑test (75%) to continue';
+      case 'viewed':     return 'Submit the pre‑test above to continue.';
+      case 'interacted': return 'Complete the activity above to continue.';
+      case 'completed':  return 'Pass the post‑test (75 %) to continue.';
     }
   });
+
+  // ---- Navigation helpers ----------------------------------------------
+  function navigateTo(url: string) {
+    try {
+      if (window.top && window.top !== window.self) {
+        window.top.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    } catch {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }
 
   // ---- Auth subscription -----------------------------------------------
   onMount(() => {
@@ -42,19 +62,18 @@
       user = firebaseUser;
       authReady = true;
     });
+
     return () => {
       unsubAuth?.();
       unsubDoc?.();
     };
   });
 
-  // ---- Snapshot subscription (when user and params are ready) ----------
+  // ---- Snapshot subscription (re-runs when auth state or lessonId changes)
   $effect(() => {
-    // Cleanup previous listener
     unsubDoc?.();
     unsubDoc = null;
 
-    // Only proceed when auth is ready and we have a user and valid lessonId
     if (!authReady || !user || !lessonId || !gate) {
       gateMet = null;
       return;
@@ -66,57 +85,46 @@
     unsubDoc = onSnapshot(
       docRef,
       (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          const isMet = Boolean(data[gate]);
-          gateMet = isMet;
-        } else {
-          gateMet = false;
-        }
+        gateMet    = snap.exists() ? Boolean(snap.data()[gate]) : false;
         loadingDoc = false;
       },
       (err) => {
         console.error('Navigator snapshot error:', err);
-        gateMet = false;
+        gateMet    = false;
         loadingDoc = false;
       }
     );
   });
-
-  // ---- Navigation handler ----------------------------------------------
-  function handleProceed() {
-    if (!gateMet) return;
-    try {
-      if (window.top && window.top !== window.self) {
-        window.top.location.href = next;
-      } else {
-        window.location.href = next;
-      }
-    } catch {
-      window.open(next, '_blank', 'noopener,noreferrer');
-    }
-  }
 </script>
 
 <main class="navigator-shell">
   {#if !authReady || loadingDoc}
-    <!-- Loading state -->
+    <!-- ── Loading ──────────────────────────────────────────── -->
     <div class="nav-spinner" aria-label="Loading progress…"></div>
     <p class="nav-hint">Checking your progress…</p>
 
   {:else if !user}
-    <!-- Not signed in -->
-    <p class="nav-hint">Please sign in to access this content.</p>
+    <!-- ── Unauthenticated ───────────────────────────────────
+         Clicking sends the student to the home Google Sites page
+         where the Dashboard embed (and sign-in) lives.           -->
+    <button
+      class="nav-btn active"
+      onclick={() => navigateTo(home)}
+      aria-label="Go to sign-in page"
+    >
+      Sign in to continue
+    </button>
+    <p class="nav-hint">You need to be signed in to track your progress.</p>
 
   {:else}
-    <!-- Authenticated: show button -->
+    <!-- ── Authenticated ────────────────────────────────────── -->
     <button
       class="nav-btn"
       class:active={gateMet === true}
       class:locked={gateMet === false}
       disabled={gateMet !== true}
-      onclick={handleProceed}
-      aria-label={gateMet ? `Proceed to next page` : `Cannot proceed yet`}
+      onclick={() => navigateTo(next)}
+      aria-label={gateMet ? 'Proceed to next page' : 'Cannot proceed yet'}
     >
       {label}
     </button>
@@ -124,7 +132,7 @@
     {#if gateMet === false}
       <p class="nav-hint">{hintText}</p>
     {:else if gateMet === true}
-      <p class="nav-hint">You can now continue forward.</p>
+      <p class="nav-hint">You're good to go.</p>
     {/if}
   {/if}
 </main>

@@ -1,13 +1,14 @@
 import { writable } from 'svelte/store';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Timestamp } from 'firebase/firestore';
 
 export interface Progress {
   lessonId: string;
   userId: string;
   viewed: boolean;
   viewedAt: Timestamp | null;
+  interacted: boolean;
+  interactedAt: Timestamp | null;
   completed: boolean;
   completedAt: Timestamp | null;
   quizScore: number | null;
@@ -40,25 +41,19 @@ export function startProgressMonitor(uid: string) {
     set({ ...initialState, loading: true });
 
     const progressRef = collection(db, 'progress');
-    
-    // Query only documents belonging to this user
     const q = query(progressRef, where('userId', '==', uid));
 
     unsubscribe = onSnapshot(
         q,
         (snapshot) => {
             const newMap = new Map<string, Progress>();
-            
+
             for (const docSnap of snapshot.docs) {
                 const data = docSnap.data() as Progress;
                 newMap.set(data.lessonId, data);
             }
 
-            set({
-                map: newMap,
-                loading: false,
-                error: null
-            });
+            set({ map: newMap, loading: false, error: null });
         },
         (err) => {
             console.error('Progress monitor error:', err);

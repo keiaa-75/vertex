@@ -11,8 +11,13 @@
     setDoc,
     serverTimestamp,
     onAuthStateChanged,
+    markInteracted,
     type User
   } from '@vertex/shared';
+
+  // Read lessonId from the iframe's query string.
+  // Educators set this when embedding: /modules/parabola/sort/?lessonId=parabola-sort
+  const lessonId = new URLSearchParams(window.location.search).get('lessonId') ?? '';
 
   let gameState = $state<'MENU' | 'PLAYING' | 'GAME_OVER'>('MENU');
   let currentCard = $state<ParabolaCard>(generateCard());
@@ -29,6 +34,10 @@
   let currentUser = $state<User | null>(null);
   let personalBest = $state(0);
   let highScoreLoaded = $state(false);
+
+  // Track whether markInteracted has already been called across sessions.
+  // Once sent, don't re-send on subsequent game-overs.
+  let interactionRecorded = false;
 
   let timerPct = $derived(timeLeft / TIME_LIMIT);
   let timerColorClass = $derived(
@@ -57,7 +66,7 @@
 
   async function submitHighScore(finalScore: number) {
     if (!currentUser || finalScore <= personalBest) return;
-  
+
     try {
       const ref = doc(db, 'highScores', currentUser.uid);
       await setDoc(ref, {
@@ -112,6 +121,14 @@
     gameState = 'GAME_OVER';
     gameOverReason = reason;
     submitHighScore(score);
+
+    // Mark interacted on the first game-over where the student sorted at
+    // least one card correctly. Zero-score ends (immediate wrong swipe)
+    // don't count as meaningful engagement.
+    if (!interactionRecorded && score > 0) {
+      interactionRecorded = true;
+      void markInteracted(lessonId);
+    }
   }
 
   const opposites: Record<Direction, Direction> = {
