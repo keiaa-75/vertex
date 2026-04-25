@@ -8,7 +8,6 @@ export interface Lesson {
     title: string;
     order: number;
     googleSitesUrl: string;
-    githubPagesPath: string;
     prerequisites: string[];
 }
 
@@ -66,7 +65,6 @@ export async function loadCurriculum(): Promise<void> {
                 title: data.title as string,
                 order: data.order as number,
                 googleSitesUrl: data.googleSitesUrl as string,
-                githubPagesPath: data.githubPagesPath as string,
                 prerequisites: (data.prerequisites as string[]) || []
               };
             });
