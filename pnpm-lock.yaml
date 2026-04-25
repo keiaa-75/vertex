@@ -102,6 +102,34 @@ importers:
         specifier: ^8.0.9
         version: 8.0.9(@types/node@24.12.2)
 
+  packages/modules/parabola-graph:
+    dependencies:
+      '@vertex/shared':
+        specifier: workspace:*
+        version: link:../../shared
+    devDependencies:
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^7.0.0
+        version: 7.0.0(svelte@5.55.4)(vite@8.0.9(@types/node@24.12.2))
+      '@tsconfig/svelte':
+        specifier: ^5.0.8
+        version: 5.0.8
+      '@types/node':
+        specifier: ^24.12.2
+        version: 24.12.2
+      svelte:
+        specifier: ^5.55.4
+        version: 5.55.4
+      svelte-check:
+        specifier: ^4.4.6
+        version: 4.4.6(picomatch@4.0.4)(svelte@5.55.4)(typescript@6.0.2)
+      typescript:
+        specifier: ~6.0.2
+        version: 6.0.2
+      vite:
+        specifier: ^8.0.9
+        version: 8.0.9(@types/node@24.12.2)
+
   packages/modules/parabola-sort:
     dependencies:
       '@vertex/shared':
