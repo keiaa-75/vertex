@@ -10,15 +10,18 @@ html, body {
 }
 
 /* ── Shell container ─────────────────────────────────────── */
+/* justify-content and padding may be overridden by inline style
+   from the align= and padding= URL params. */
 .navigator-shell {
   min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.5rem;
 }
 
-/* ── Proceed button ─────────────────────────────────────── */
+/* ── Shared button base ──────────────────────────────────── */
 .nav-btn {
   padding: 0.75rem 2rem;
   border: none;
@@ -38,6 +41,7 @@ html, body {
   transform: scale(0.97);
 }
 
+/* ── Forward / proceed button ────────────────────────────── */
 /* Active state */
 .nav-btn.active {
   background: #FFD700;
@@ -55,4 +59,16 @@ html, body {
   color: var(--md-sys-color-on-surface-variant);
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+/* ── Back button ─────────────────────────────────────────── */
+/* Tonal style — secondary action, doesn't compete with forward. */
+.nav-btn.back-btn {
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: none;
+}
+
+.nav-btn.back-btn:hover {
+  background: #E2E8F0;
 }
