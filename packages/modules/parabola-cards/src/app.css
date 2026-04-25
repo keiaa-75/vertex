@@ -108,7 +108,6 @@
   font-family: var(--md-sys-typescale-heading);
   font-size: clamp(1.6rem, 5vw, 2.1rem);
   font-weight: 700;
-  font-style: italic;
   color: var(--md-sys-color-on-surface);
   line-height: 1.1;
 }
