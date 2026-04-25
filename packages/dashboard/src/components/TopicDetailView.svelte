@@ -18,7 +18,7 @@
         window.location.href = lesson.googleSitesUrl;
       }
     } catch {
-      window.open(lesson.googleSitesUrl, '_top');
+      window.open(lesson.googleSitesUrl, '_blank', 'noopener,noreferrer');
     }
   }
 

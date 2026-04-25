@@ -78,7 +78,7 @@
         window.location.href = url;
       }
     } catch {
-      window.open(url, '_top');
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   }
 
