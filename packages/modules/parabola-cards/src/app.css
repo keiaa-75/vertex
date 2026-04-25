@@ -1,0 +1,281 @@
+/* ============================================================
+   PARABOLA VERTEX — component styles
+   Depends on vertex.css being loaded first (via shared import
+   in main.ts), which provides all tokens and base primitives.
+   ============================================================ */
+
+/* ── Shell ──────────────────────────────────────────────────── */
+.module-shell {
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--md-sys-spacing-lg);
+  background: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--md-sys-typescale-body);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  outline: none;
+}
+
+/* ── Carousel track ─────────────────────────────────────────── */
+.carousel-track {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1.25rem);
+}
+
+/* ── Card viewport (clips animation overflow) ───────────────── */
+.card-viewport {
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  /* viewport slightly wider than the card for the arrow buttons
+     to sit comfortably beside it on narrow screens */
+}
+
+/* ── Form card ──────────────────────────────────────────────── */
+.form-card {
+  width: clamp(260px, 80vw, 360px);
+  background: var(--md-sys-color-surface);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  border: 1px solid var(--md-sys-color-surface-variant);
+  box-shadow: var(--md-sys-elevation-2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* enter animations — triggered by {#key} block re-mount */
+.form-card.anim-fwd {
+  animation: slide-in-right 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+.form-card.anim-back {
+  animation: slide-in-left 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(56px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-56px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* ── Card header: SVG preview + direction badge ─────────────── */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg) var(--md-sys-spacing-sm);
+}
+
+.preview-svg {
+  width: clamp(72px, 18vw, 96px);
+  height: auto;
+  flex-shrink: 0;
+}
+
+.preview-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.direction-badge {
+  font-family: var(--md-sys-typescale-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+  padding: 0.3em 0.8em;
+  border-radius: var(--md-sys-shape-corner-full);
+  align-self: flex-start;
+}
+
+/* ── Equation ────────────────────────────────────────────────── */
+.equation-row {
+  padding: var(--md-sys-spacing-sm) var(--md-sys-spacing-lg) var(--md-sys-spacing-md);
+}
+
+.equation {
+  font-family: var(--md-sys-typescale-heading);
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  font-weight: 700;
+  font-style: italic;
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.1;
+}
+
+.equation :global(sup) {
+  font-size: 0.56em;
+  vertical-align: super;
+  font-style: normal;
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.divider {
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--md-sys-color-surface-variant);
+}
+
+/* ── Focus / Directrix grid ──────────────────────────────────── */
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
+  gap: var(--md-sys-spacing-md);
+}
+
+.meta-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.meta-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--md-sys-color-on-surface-variant);
+  text-transform: uppercase;
+}
+
+.meta-value {
+  font-family: var(--md-sys-typescale-heading);
+  font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* ── Axis row ────────────────────────────────────────────────── */
+.axis-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: var(--md-sys-spacing-sm) var(--md-sys-spacing-lg) var(--md-sys-spacing-md);
+}
+
+.axis-bullet {
+  font-size: 0.45rem;
+  color: var(--md-sys-color-primary);
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 0.05em;
+}
+
+.axis-text {
+  font-size: clamp(0.78rem, 2vw, 0.88rem);
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.3;
+}
+
+.axis-text strong {
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* ── Nav arrows ──────────────────────────────────────────────── */
+.nav-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--md-sys-color-surface-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--md-sys-elevation-1);
+  transition: opacity 0.22s ease, transform 0.15s ease,
+              background 0.15s ease, box-shadow 0.15s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav-arrow.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-arrow:hover {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.nav-arrow:active {
+  transform: scale(0.93);
+}
+
+.nav-arrow:disabled {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.nav-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Dot indicators ──────────────────────────────────────────── */
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dot {
+  all: unset;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-variant);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.dot--active {
+  background: var(--md-sys-color-primary);
+  transform: scale(1.35);
+}
+
+.dot:hover:not(.dot--active) {
+  background: var(--md-sys-color-on-surface-variant);
+}
+
+/* ── Touch: always show arrows when touched ──────────────────── */
+@media (hover: none) {
+  /* On touch devices the :hover trick doesn't apply — arrows appear
+     after the first onpointerdown via the `touched` state flag. */
+  .nav-arrow {
+    /* give them a visible but subtle default presence on touch */
+    opacity: 0;
+  }
+}
+
+/* ── Narrow viewports ────────────────────────────────────────── */
+@media (max-width: 380px) {
+  .carousel-track {
+    gap: 0.25rem;
+  }
+
+  .nav-arrow {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-arrow svg {
+    width: 16px;
+    height: 16px;
+  }
+}

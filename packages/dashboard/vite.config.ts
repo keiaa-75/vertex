@@ -34,6 +34,11 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
+      '/vertex/modules/parabola/cards': {
+        target: 'http://localhost:5177',
+        changeOrigin: true,
+        ws: true,
+      }
     }
   }
 })
