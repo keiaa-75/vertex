@@ -44,8 +44,8 @@ html, body {
 
 /* Active state */
 .nav-btn.active {
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
+  background: #FFD700;
+  color: #0055AA;
   box-shadow: var(--md-sys-elevation-1);
 }
 
