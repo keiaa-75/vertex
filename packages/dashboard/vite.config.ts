@@ -19,6 +19,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/navigator': {
+        target: 'http://localhost:5176',
+        changeOrigin: true,
+        ws: true,
+      },
       '/modules/parabola/anatomy': {
         target: 'http://localhost:5174',
         changeOrigin: true,
