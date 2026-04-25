@@ -21,6 +21,6 @@
     "vite": "^8.0.9"
   },
   "vertex": {
-    "githubPagesPath": "/modules/parabola/anatomy/"
+    "githubPagesPath": "/vertex/modules/parabola/anatomy/"
   }
 }

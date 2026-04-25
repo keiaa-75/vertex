@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  base: '/',
+  base: '/vertex/',
   plugins: [svelte()],
   envDir: '../../',
   resolve: {
@@ -19,17 +19,17 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/navigator': {
+      '/vertex/navigator': {
         target: 'http://localhost:5176',
         changeOrigin: true,
         ws: true,
       },
-      '/modules/parabola/anatomy': {
+      '/vertex/modules/parabola/anatomy': {
         target: 'http://localhost:5174',
         changeOrigin: true,
         ws: true,
       },
-      '/modules/parabola/sort': {
+      '/vertex/modules/parabola/sort': {
         target: 'http://localhost:5175',
         changeOrigin: true,
         ws: true,
