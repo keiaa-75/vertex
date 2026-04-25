@@ -86,23 +86,11 @@ body {
   display: flex;
   align-items: center;
   gap: var(--md-sys-spacing-md);
-}
-
-.slider-label {
-  flex-shrink: 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--md-sys-color-on-surface-variant);
-  white-space: nowrap;
+  width: 100%;
+  padding: 0;
 }
 
 /* ── Range slider ────────────────────────────────────────────── */
-/*
-  #a3e1ce is a lighter tone of #1a4b84 (the graph bg colour),
-  computed by blending #1a4b84 60% toward white.
-*/
 .p-slider {
   flex: 1;
   -webkit-appearance: none;
@@ -156,6 +144,7 @@ body {
 /* ── p value pill ────────────────────────────────────────────── */
 .p-pill {
   flex-shrink: 0;
+  width: 110px;
   background: var(--md-sys-color-surface-variant);
   color: var(--md-sys-color-on-surface);
   font-family: var(--md-sys-typescale-heading);
@@ -164,7 +153,6 @@ body {
   padding: 0.3em 0.9em;
   border-radius: var(--md-sys-shape-corner-full);
   white-space: nowrap;
-  min-width: 80px;
   text-align: center;
   box-shadow: var(--md-sys-elevation-1);
 }

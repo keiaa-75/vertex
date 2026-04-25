@@ -141,7 +141,7 @@
   <!-- ── Controls ───────────────────────────────────────────────────────── -->
   <div class="controls">
     <div class="slider-row">
-      <span class="slider-label">Focal Distance</span>
+      <span class="p-pill" aria-live="polite" aria-atomic="true">{pDisplay}</span>
       <input
         class="p-slider"
         type="range"
@@ -151,7 +151,6 @@
         bind:value={pRaw}
         aria-label="Focal distance p"
       />
-      <span class="p-pill" aria-live="polite" aria-atomic="true">{pDisplay}</span>
     </div>
   </div>
 
