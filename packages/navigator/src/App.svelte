@@ -69,19 +69,6 @@
   let unsubAuth: (() => void) | null = null;
   let unsubDoc:  (() => void) | null = null;
 
-  // ---- Derived hint text -----------------------------------------------
-  // $derived.by is the correct Svelte 5 idiom for multi-line derived logic.
-  // $derived(() => { ... }) would give a derived holding the *function*
-  // itself, not its return value.
-  const hintText = $derived.by(() => {
-    if (!lessonId || !gate || !next) return 'Page misconfiguration.';
-    switch (gate) {
-      case 'viewed':     return 'Submit the pre‑test above to continue.';
-      case 'interacted': return 'Complete the activity above to continue.';
-      case 'completed':  return 'Pass the post‑test (75 %) to continue.';
-    }
-  });
-
   // ---- Navigation helpers ----------------------------------------------
   function navigateTo(url: string) {
     try {
@@ -138,14 +125,8 @@
 
 <main class="navigator-shell">
   {#if !authReady || loadingDoc}
-    <!-- ── Loading ──────────────────────────────────────────── -->
-    <div class="nav-spinner" aria-label="Loading progress…"></div>
-    <p class="nav-hint">Checking your progress…</p>
-
+    <!-- Loading -->
   {:else if !user}
-    <!-- ── Unauthenticated ───────────────────────────────────
-         Clicking sends the student to the home Google Sites page
-         where the Dashboard embed (and sign-in) lives.           -->
     <button
       class="nav-btn active"
       onclick={() => navigateTo(home)}
@@ -153,10 +134,7 @@
     >
       Sign in to continue
     </button>
-    <p class="nav-hint">You need to be signed in to track your progress.</p>
-
   {:else}
-    <!-- ── Authenticated ────────────────────────────────────── -->
     <button
       class="nav-btn"
       class:active={gateMet === true}
@@ -167,11 +145,5 @@
     >
       {label}
     </button>
-
-    {#if gateMet === false}
-      <p class="nav-hint">{hintText}</p>
-    {:else if gateMet === true}
-      <p class="nav-hint">You're good to go.</p>
-    {/if}
   {/if}
 </main>
