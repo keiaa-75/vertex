@@ -1,12 +1,21 @@
 /* ============================================================
-   NAVIGATOR — button-only embed
-   ============================================================ */
+    NAVIGATOR — button-only embed
+    ============================================================ */
 
 html, body {
   margin: 0;
   padding: 0;
   background: transparent;
   overflow: hidden;
+}
+
+/* ── Shell container ─────────────────────────────────────── */
+.navigator-shell {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
 }
 
 /* ── Proceed button ─────────────────────────────────────── */

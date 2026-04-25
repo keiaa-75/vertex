@@ -212,10 +212,15 @@
       </div>
 
       <div class="card-arena">
-        <div class="hint hint-up"    class:active={lastInputDirection === 'UP'}>W</div>
-        <div class="hint hint-left"  class:active={lastInputDirection === 'LEFT'}>A</div>
-        <div class="hint hint-right" class:active={lastInputDirection === 'RIGHT'}>D</div>
-        <div class="hint hint-down"  class:active={lastInputDirection === 'DOWN'}>S</div>
+        <div class="hint hint-desktop hint-up"    class:active={lastInputDirection === 'UP'}>W</div>
+        <div class="hint hint-desktop hint-left"  class:active={lastInputDirection === 'LEFT'}>A</div>
+        <div class="hint hint-desktop hint-right" class:active={lastInputDirection === 'RIGHT'}>D</div>
+        <div class="hint hint-desktop hint-down"  class:active={lastInputDirection === 'DOWN'}>S</div>
+
+        <div class="hint hint-mobile hint-up"    class:active={lastInputDirection === 'UP'}>↑</div>
+        <div class="hint hint-mobile hint-left"  class:active={lastInputDirection === 'LEFT'}>←</div>
+        <div class="hint hint-mobile hint-right" class:active={lastInputDirection === 'RIGHT'}>→</div>
+        <div class="hint hint-mobile hint-down"  class:active={lastInputDirection === 'DOWN'}>↓</div>
 
         <div
           class="card"
