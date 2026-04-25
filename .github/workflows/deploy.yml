@@ -48,6 +48,8 @@ jobs:
           cp -r packages/modules/parabola-anatomy/dist/. _site/modules/parabola/anatomy/
           mkdir -p _site/modules/parabola/sort
           cp -r packages/modules/parabola-sort/dist/. _site/modules/parabola/sort/
+          mkdir -p _site/modules/parabola/cards
+          cp -r packages/modules/parabola-cards/dist/. _site/modules/parabola/cards/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
