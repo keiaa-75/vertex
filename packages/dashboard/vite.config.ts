@@ -38,6 +38,11 @@ export default defineConfig({
         target: 'http://localhost:5177',
         changeOrigin: true,
         ws: true,
+      },
+      '/vertex/modules/parabola/graph': {
+        target: 'http://localhost:5178',
+        changeOrigin: true,
+        ws: true,
       }
     }
   }

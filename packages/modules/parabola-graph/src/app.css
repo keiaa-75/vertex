@@ -1,0 +1,170 @@
+/* ============================================================
+   PARABOLA GRAPH — component styles
+   Transparent shell; graph background is painted inside the SVG.
+   Depends on vertex.css being loaded first.
+   ============================================================ */
+
+/* ── Override vertex.css body defaults for transparency ──────── */
+html,
+body {
+  background: transparent !important;
+  overflow: hidden;
+}
+
+/* ── Shell ───────────────────────────────────────────────────── */
+.module-shell {
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--md-sys-typescale-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Graph area ──────────────────────────────────────────────── */
+.graph-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── SVG text labels ─────────────────────────────────────────── */
+/*
+  paint-order: stroke fill ensures the stroke renders behind the fill,
+  giving a clean dark halo that keeps text legible on any graph colour.
+*/
+.lbl-name,
+.lbl-value {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  fill: white;
+}
+
+.lbl-name {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  fill: rgba(255, 255, 255, 0.75);
+  stroke-width: 3px;
+}
+
+.lbl-value {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lbl-focus {
+  fill: #ffc857;
+}
+
+.lbl-directrix {
+  fill: #ff8080;
+}
+
+/* ── Controls strip ──────────────────────────────────────────── */
+.controls {
+  flex-shrink: 0;
+  padding: 0.6rem var(--md-sys-spacing-lg) 0.75rem;
+  background: transparent;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-spacing-md);
+}
+
+.slider-label {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: nowrap;
+}
+
+/* ── Range slider ────────────────────────────────────────────── */
+/*
+  #a3e1ce is a lighter tone of #1a4b84 (the graph bg colour),
+  computed by blending #1a4b84 60% toward white.
+*/
+.p-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: #aebed1;
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+}
+
+.p-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1a4b84;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.p-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.p-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+.p-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1a4b84;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+}
+
+.p-slider::-moz-range-track {
+  height: 6px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: #aebed1;
+}
+
+/* ── p value pill ────────────────────────────────────────────── */
+.p-pill {
+  flex-shrink: 0;
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--md-sys-typescale-heading);
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.3em 0.9em;
+  border-radius: var(--md-sys-shape-corner-full);
+  white-space: nowrap;
+  min-width: 80px;
+  text-align: center;
+  box-shadow: var(--md-sys-elevation-1);
+}
