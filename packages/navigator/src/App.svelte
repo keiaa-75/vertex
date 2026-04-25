@@ -1,4 +1,43 @@
 <script lang="ts">
+  /*
+   * Navigator — Conditional Proceed Button Embed
+   * ================================
+   * A reusable embed that reads Firestore progress and shows an active/disabled
+   * button based on gate conditions. Used as an iframe in Google Sites pages.
+   *
+   * URL Parameters
+   * ------------
+   * All parameters are passed via query string.
+   *
+   *   lessonId  (required)  The PARENT lesson ID (the lesson page containing this embed).
+   *                        This is NOT the module name — it's the lesson being tracked.
+   *                        Example: "parabola"
+   *   gate     (required)  Which field to check: "viewed", "interacted", or "completed"
+   *   next     (required)  Full URL to navigate to when gate passes
+   *   label    (optional)  Button text. Default: "Continue →"
+   *   home     (optional)  URL for unauthenticated "Sign in" button. Default: "/"
+   *
+   * Example Embed URLs
+   * --------------
+   * Pretest page (gate: viewed):
+   *   /navigator/?lessonId=parabola&gate=viewed&next=https://site/lesson&label=Start+→
+   *
+   * Lesson page (gate: interacted):
+   *   /navigator/?lessonId=parabola&gate=interacted&next=https://site/posttest&label=Done
+   *
+   * Posttest page (gate: completed):
+   *   /navigator/?lessonId=parabola&gate=completed&next=https://site/dashboard&label=Back+Home
+   *
+   * Firestore Details
+   * -------------
+   * Document path: progress/{uid}_{lessonId}
+   *
+   * Gates map to boolean fields:
+   *   viewed     → progress.viewed
+   *   interacted → progress.interacted
+   *   completed  → progress.completed
+   */
+
   import { onMount } from 'svelte';
   import {
     auth,

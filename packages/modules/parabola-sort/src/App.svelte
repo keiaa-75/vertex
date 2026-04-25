@@ -16,7 +16,9 @@
   } from '@vertex/shared';
 
   // Read lessonId from the iframe's query string.
-  // Educators set this when embedding: /modules/parabola/sort/?lessonId=parabola-sort
+  // This is the PARENT lesson ID, not the module name.
+  // Pass the lesson that contains this module.
+  // Example: /modules/parabola/sort/?lessonId=parabola
   const lessonId = new URLSearchParams(window.location.search).get('lessonId') ?? '';
 
   let gameState = $state<'MENU' | 'PLAYING' | 'GAME_OVER'>('MENU');
