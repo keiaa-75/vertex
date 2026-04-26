@@ -22,7 +22,7 @@
   let password = $state('');
   let authError = $state<string | null>(null);
   let isAuthenticating = $state(false);
-  let isSignupMode = $state(false);
+  let isSignupMode = $state(true);
 
   // Dashboard view routing
   let viewState = $state<'topics' | 'profile' | 'editProfile'>('topics');
@@ -123,7 +123,7 @@
         </div>
 
         <button type="submit" class="btn btn-filled" disabled={!email || !password || isAuthenticating}>
-          {isAuthenticating ? 'Signing in...' : 'Sign In'}
+          {isAuthenticating ? 'Signing up...' : (isSignupMode ? 'Create Account' : 'Sign In')}
         </button>
       </form>
 
