@@ -52,6 +52,8 @@ jobs:
           cp -r packages/modules/parabola-cards/dist/. _site/modules/parabola/cards/
           mkdir -p _site/modules/parabola/graph
           cp -r packages/modules/parabola-graph/dist/. _site/modules/parabola/graph/
+          mkdir -p _site/modules/parabola/forms
+          cp -r packages/modules/parabola-forms/dist/. _site/modules/parabola/forms/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

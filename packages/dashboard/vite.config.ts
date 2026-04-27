@@ -43,6 +43,11 @@ export default defineConfig({
         target: 'http://localhost:5178',
         changeOrigin: true,
         ws: true,
+      },
+      '/vertex/modules/parabola/forms': {
+        target: 'http://localhost:5179',
+        changeOrigin: true,
+        ws: true,
       }
     }
   }

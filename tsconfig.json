@@ -23,6 +23,7 @@
     { "path": "./packages/modules/parabola-cards" },
     { "path": "./packages/modules/parabola-graph"},
     { "path": "./packages/modules/parabola-sort" },
+    { "path": "./packages/modules/parabola-forms" },
   ],
   "files": []
 }
