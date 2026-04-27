@@ -1,15 +1,29 @@
 <script lang="ts">
-  import { getRows, DIRECTIONS, type VertexMode, type LayoutMode, type Direction } from './lib/formsData';
+  import { getRows, DIRECTIONS, type VertexMode, type LayoutMode, type Direction, type FormRow } from './lib/formsData';
   import SegmentedControl from './lib/SegmentedControl.svelte';
   import CustomSelect from './lib/CustomSelect.svelte';
+  import ParabolaIllustration from './lib/ParabolaIllustration.svelte';
 
   // ── State ────────────────────────────────────────────────────────────────
-  let vertexMode = $state<VertexMode>('00');
-  let layoutMode = $state<LayoutMode>('table');
+  let vertexMode  = $state<VertexMode>('00');
+  let layoutMode  = $state<LayoutMode>('table');
   let selectedDir = $state<Direction>('Upward');
+  let activeRow   = $state<FormRow | null>(null);
 
-  let rows = $derived(getRows(vertexMode));
+  let rows        = $derived(getRows(vertexMode));
   let selectedRow = $derived(rows.find(r => r.direction === selectedDir) ?? rows[0]);
+
+  // ── Modal helpers ────────────────────────────────────────────────────────
+  function openRow(row: FormRow) { activeRow = row; }
+  function closeModal()          { activeRow = null; }
+
+  function onRowKey(e: KeyboardEvent, row: FormRow) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRow(row); }
+  }
+
+  function onOverlayKey(e: KeyboardEvent) {
+    if (e.key === 'Escape') closeModal();
+  }
 
   // ── SVG icons (inline, no external dep) ─────────────────────────────────
   const ICON_TABLE = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
@@ -80,7 +94,13 @@
           </thead>
           <tbody>
             {#each rows as row (row.direction)}
-              <tr>
+              <!-- svelte-ignore a11y_interactive_supports_focus -->
+              <tr
+                tabindex="0"
+                onclick={() => openRow(row)}
+                onkeydown={(e) => onRowKey(e, row)}
+                title="View {row.direction} parabola illustration"
+              >
                 <td class="col-direction">{row.direction}</td>
                 <td class="col-equation">{@html row.equationHtml}</td>
                 <td class="col-math">{row.focus}</td>
@@ -91,6 +111,17 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Hint -->
+      <p class="table-hint">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+          width="12" height="12" style="vertical-align:-1px;flex-shrink:0" aria-hidden="true">
+          <circle cx="8" cy="8" r="7"/>
+          <line x1="8" y1="5" x2="8" y2="9"/>
+          <circle cx="8" cy="11.5" r="0.75" fill="currentColor" stroke="none"/>
+        </svg>
+        Tap a row to see its parabola
+      </p>
 
     {:else}
       <!-- LIST LAYOUT -->
@@ -124,9 +155,47 @@
               <dd class="dd-math">{selectedRow.axis}</dd>
             </div>
           </dl>
+
+          <!-- Inline illustration for list view -->
+          <div class="list-illustration">
+            <ParabolaIllustration direction={selectedDir} />
+          </div>
         {/key}
       </div>
     {/if}
 
   </div>
+
+  <!-- ── Modal ─────────────────────────────────────────────────────────── -->
+  {#if activeRow}
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <div
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="{activeRow.direction} parabola"
+      onclick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+      onkeydown={onOverlayKey}
+    >
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span class="modal-direction">{activeRow.direction}</span>
+            <span class="modal-equation">{@html activeRow.equationHtml}</span>
+          </div>
+          <button class="modal-close" onclick={closeModal} aria-label="Close illustration">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <line x1="18" y1="6"  x2="6"  y2="18" />
+              <line x1="6"  y1="6"  x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ParabolaIllustration direction={activeRow.direction} />
+        </div>
+      </div>
+    </div>
+  {/if}
+
 </main>
