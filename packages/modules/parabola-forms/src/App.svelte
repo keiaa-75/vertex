@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getRows, DIRECTIONS, type VertexMode, type LayoutMode, type Direction } from './lib/formsData';
   import SegmentedControl from './lib/SegmentedControl.svelte';
+  import CustomSelect from './lib/CustomSelect.svelte';
 
   // ── State ────────────────────────────────────────────────────────────────
   let vertexMode = $state<VertexMode>('00');
@@ -35,6 +36,8 @@
     { value: 'table' as LayoutMode, label: 'Table', iconHtml: ICON_TABLE },
     { value: 'list'  as LayoutMode, label: 'List',  iconHtml: ICON_LIST  },
   ];
+
+  const directionOptions = DIRECTIONS.map(dir => ({ value: dir, label: dir }));
 </script>
 
 <svelte:options css="injected" />
@@ -94,15 +97,11 @@
       <div class="list-layout">
         <!-- Direction picker -->
         <div class="list-picker">
-          <select
-            class="dir-select"
+          <CustomSelect
+            label="Direction"
+            options={directionOptions}
             bind:value={selectedDir}
-            aria-label="Select direction"
-          >
-            {#each DIRECTIONS as dir}
-              <option value={dir}>{dir}</option>
-            {/each}
-          </select>
+          />
         </div>
 
         <!-- Detail card -->
