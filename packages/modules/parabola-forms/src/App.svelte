@@ -28,8 +28,8 @@
   </svg>`;
 
   const vertexOptions = [
-    { value: '00' as VertexMode, label: 'Vertex (0,0)' },
-    { value: 'hk' as VertexMode, label: 'Vertex (h,k)' },
+    { value: '00' as VertexMode, label: '(0,0)' },
+    { value: 'hk' as VertexMode, label: '(h,k)' },
   ];
 
   const layoutOptions = [

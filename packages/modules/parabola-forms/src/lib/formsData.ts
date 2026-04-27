@@ -2,7 +2,7 @@ export type Direction = 'Upward' | 'Downward' | 'Rightward' | 'Leftward';
 
 export interface FormRow {
   direction: Direction;
-  /** Safe for {@html} — uses <sup> and <i> tags. */
+  /** Safe for {@html} — uses <sup> tags only. */
   equationHtml: string;
   focus: string;
   directrix: string;
@@ -15,28 +15,28 @@ export type LayoutMode = 'table' | 'list';
 const ROWS_00: FormRow[] = [
   {
     direction: 'Upward',
-    equationHtml: '<i>x</i><sup>2</sup> = 4<i>py</i>',
+    equationHtml: 'x<sup>2</sup> = 4py',
     focus: '(0, p)',
     directrix: 'y = −p',
     axis: 'x = 0',
   },
   {
     direction: 'Downward',
-    equationHtml: '<i>x</i><sup>2</sup> = −4<i>py</i>',
+    equationHtml: 'x<sup>2</sup> = −4py',
     focus: '(0, −p)',
     directrix: 'y = p',
     axis: 'x = 0',
   },
   {
     direction: 'Rightward',
-    equationHtml: '<i>y</i><sup>2</sup> = 4<i>px</i>',
+    equationHtml: 'y<sup>2</sup> = 4px',
     focus: '(p, 0)',
     directrix: 'x = −p',
     axis: 'y = 0',
   },
   {
     direction: 'Leftward',
-    equationHtml: '<i>y</i><sup>2</sup> = −4<i>px</i>',
+    equationHtml: 'y<sup>2</sup> = −4px',
     focus: '(−p, 0)',
     directrix: 'x = p',
     axis: 'y = 0',
@@ -46,28 +46,28 @@ const ROWS_00: FormRow[] = [
 const ROWS_HK: FormRow[] = [
   {
     direction: 'Upward',
-    equationHtml: '(<i>x</i>−<i>h</i>)<sup>2</sup> = 4<i>p</i>(<i>y</i>−<i>k</i>)',
+    equationHtml: '(x−h)<sup>2</sup> = 4p(y−k)',
     focus: '(h, k+p)',
     directrix: 'y = k−p',
     axis: 'x = h',
   },
   {
     direction: 'Downward',
-    equationHtml: '(<i>x</i>−<i>h</i>)<sup>2</sup> = −4<i>p</i>(<i>y</i>−<i>k</i>)',
+    equationHtml: '(x−h)<sup>2</sup> = −4p(y−k)',
     focus: '(h, k−p)',
     directrix: 'y = k+p',
     axis: 'x = h',
   },
   {
     direction: 'Rightward',
-    equationHtml: '(<i>y</i>−<i>k</i>)<sup>2</sup> = 4<i>p</i>(<i>x</i>−<i>h</i>)',
+    equationHtml: '(y−k)<sup>2</sup> = 4p(x−h)',
     focus: '(h+p, k)',
     directrix: 'x = h−p',
     axis: 'y = k',
   },
   {
     direction: 'Leftward',
-    equationHtml: '(<i>y</i>−<i>k</i>)<sup>2</sup> = −4<i>p</i>(<i>x</i>−<i>h</i>)',
+    equationHtml: '(y−k)<sup>2</sup> = −4p(x−h)',
     focus: '(h−p, k)',
     directrix: 'x = h+p',
     axis: 'y = k',
