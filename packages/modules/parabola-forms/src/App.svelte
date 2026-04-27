@@ -14,8 +14,10 @@
   let selectedRow = $derived(rows.find(r => r.direction === selectedDir) ?? rows[0]);
 
   // ── Modal helpers ────────────────────────────────────────────────────────
-  function openRow(row: FormRow) { activeRow = row; }
-  function closeModal()          { activeRow = null; }
+  let modalSource = $state<'table' | 'list' | null>(null);
+  function openRow(row: FormRow) { activeRow = row; modalSource = 'table'; }
+  function openListModal() { modalSource = 'list'; }
+  function closeModal() { activeRow = null; modalSource = null; }
 
   function onRowKey(e: KeyboardEvent, row: FormRow) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRow(row); }
@@ -156,10 +158,19 @@
             </div>
           </dl>
 
+          <button class="list-view-btn" onclick={() => { activeRow = selectedRow; openListModal(); }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" aria-hidden="true">
+              <circle cx="8" cy="8" r="7"/>
+              <line x1="8" y1="5" x2="8" y2="9"/>
+              <circle cx="8" cy="11.5" r="0.75" fill="currentColor" stroke="none"/>
+            </svg>
+            View illustration
+          </button>
+
           <!-- Inline illustration for list view -->
-          <div class="list-illustration">
+          <!-- <div class="list-illustration">
             <ParabolaIllustration direction={selectedDir} />
-          </div>
+          </div> -->
         {/key}
       </div>
     {/if}

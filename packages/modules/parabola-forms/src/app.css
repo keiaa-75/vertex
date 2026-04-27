@@ -279,6 +279,28 @@ body {
   animation: fade-in 0.22s ease both;
 }
 
+/* ── List view button ───────────────────────────────────────────────────── */
+.list-view-btn {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.list-view-btn:hover {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
 /* ── Modal overlay ───────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
