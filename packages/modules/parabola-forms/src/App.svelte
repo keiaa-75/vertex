@@ -14,10 +14,9 @@
   let selectedRow = $derived(rows.find(r => r.direction === selectedDir) ?? rows[0]);
 
   // ── Modal helpers ────────────────────────────────────────────────────────
-  let modalSource = $state<'table' | 'list' | null>(null);
-  function openRow(row: FormRow) { activeRow = row; modalSource = 'table'; }
-  function openListModal() { modalSource = 'list'; }
-  function closeModal() { activeRow = null; modalSource = null; }
+  function openRow(row: FormRow) { activeRow = row; }
+  function openListModal() { }
+  function closeModal() { activeRow = null; }
 
   function onRowKey(e: KeyboardEvent, row: FormRow) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRow(row); }
