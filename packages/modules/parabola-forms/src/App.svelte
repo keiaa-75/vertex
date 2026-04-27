@@ -183,6 +183,7 @@
     <div
       class="modal-overlay"
       role="dialog"
+      tabindex="-1"
       aria-modal="true"
       aria-label="{activeRow.direction} parabola"
       onclick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
