@@ -260,9 +260,6 @@ function onFormSubmit(e) {
 
   // ── Phase 2: Score, classify, write ──────────────────────────────────
   try {
-    // Open form and fetch a fresh response object for both form types.
-    // getGradableItemResponses() requires the response to be fetched
-    // via the form, not the trigger event object directly.
     const form          = FormApp.openById(e.source.getId());
     const freshResponse = form.getResponse(response.getId());
     const scoreResult   = calculateScore_(form, freshResponse);
@@ -279,6 +276,7 @@ function onFormSubmit(e) {
       };
 
       if (passed) {
+        // ── Post-test passed ──────────────────────────────────────────
         patchDocument_(docPath, {
           userId:        uid,
           lessonId:      lessonId,
@@ -290,18 +288,24 @@ function onFormSubmit(e) {
           pipelineError: null
         });
         Logger.log(`SUCCESS: Post-test passed (${percentage.toFixed(1)}%). Marked completed.`);
+
       } else {
+        // ── Post-test failed — store quizScore so dashboard can display
+        //    the score, mastery rating, and pre→post delta even though
+        //    completed remains false.  ──────────────────────────────────
         patchDocument_(docPath, {
           userId:        uid,
           lessonId:      lessonId,
+          // Persist the score so the dashboard score card can render it.
+          quizScore:     percentage,
           lastSubmission,
           pipelineError: null
         });
-        Logger.log(`RECORDED: Score ${percentage !== null ? percentage.toFixed(1) + '%' : 'ungraded'} — progress not advanced.`);
+        Logger.log(`RECORDED: Score ${percentage !== null ? percentage.toFixed(1) + '%' : 'ungraded'} — below threshold, progress not advanced.`);
       }
 
     } else {
-      // pre-test: no passing threshold, just record and mark viewed
+      // ── Pre-test ──────────────────────────────────────────────────────
       const percentage = scoreResult ? scoreResult.percentage : null;
 
       patchDocument_(docPath, {

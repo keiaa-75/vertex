@@ -3,76 +3,46 @@
   import { curriculumStore, buildLessonMap } from "@vertex/shared";
   import LessonDetailModal from "./LessonDetailModal.svelte";
 
-  let { selectedTopic, onBack, progressMap }: { 
-    selectedTopic: Topic; 
-    onBack: () => void;
+  let { selectedTopic, progressMap, onBack }: {
+    selectedTopic: Topic;
     progressMap: Map<string, Progress>;
+    onBack: () => void;
   } = $props();
 
-  let lessonMap = $derived(buildLessonMap($curriculumStore.topics));
+  let modalLesson = $state<Lesson | null>(null);
 
-  // ── Modal state ──────────────────────────────────────────────────────────
-  let activeLesson = $state<Lesson | null>(null);
-
-  function openDetail(lesson: Lesson, e: MouseEvent) {
-    e.stopPropagation();
-    activeLesson = lesson;
-  }
-
-  function closeDetail() {
-    activeLesson = null;
-  }
-
-  // ── Navigation ───────────────────────────────────────────────────────────
-  function navigate(lesson: Lesson) {
-    try {
-      if (window.top && window.top !== window.self) {
-        window.top.location.href = lesson.googleSitesUrl;
-      } else {
-        window.location.href = lesson.googleSitesUrl;
-      }
-    } catch {
-      window.open(lesson.googleSitesUrl, '_blank', 'noopener,noreferrer');
-    }
-  }
-
-  // ── Prerequisite hint ────────────────────────────────────────────────────
-  function getPrerequisiteHint(lesson: Lesson): string | null {
-    if (!lesson.prerequisites || lesson.prerequisites.length === 0) return null;
-
-    const titles = lesson.prerequisites
-      .map(id => lessonMap.get(id)?.title)
-      .filter((title): title is string => title !== undefined);
-
-    if (titles.length === 0) return null;
-
-    const joined = titles.length === 1
-      ? titles[0]
-      : `${titles.slice(0, -1).join(', ')} and ${titles[titles.length - 1]}`;
-
-    return `You might want to study ${joined} first.`;
-  }
-
-  // ── Progress helpers ─────────────────────────────────────────────────────
   function getLessonStatus(lesson: Lesson): 'unviewed' | 'viewed' | 'completed' {
-    const progress = progressMap.get(lesson.id);
-    if (!progress) return 'unviewed';
-    if (progress.completed) return 'completed';
-    if (progress.viewed) return 'viewed';
+    const p = progressMap.get(lesson.id);
+    if (p?.completed) return 'completed';
+    if (p?.viewed || p?.interacted) return 'viewed';
     return 'unviewed';
   }
 
-  function getLessonPercentage(lesson: Lesson): number {
-    const progress = progressMap.get(lesson.id);
-    if (!progress) return 0;
-    if (progress.completed) return 100;
-    if (progress.viewed) return 50;
+  function getRingPct(lesson: Lesson): number {
+    const p = progressMap.get(lesson.id);
+    if (p?.completed) return 100;
+    if (p?.viewed || p?.interacted) return 50;
     return 0;
   }
 
-  function hasScoreData(lesson: Lesson): boolean {
-    const p = progressMap.get(lesson.id);
-    return !!(p && (p.pretestScore !== null || p.quizScore !== null));
+  function getProgress(lesson: Lesson): Progress | null {
+    return progressMap.get(lesson.id) ?? null;
+  }
+
+  let lessonMap = $derived(buildLessonMap($curriculumStore.topics));
+
+  function getPrereqHint(lesson: Lesson): string | null {
+    if (!lesson.prerequisites?.length) return null;
+    const unmet = lesson.prerequisites.filter(pid => !progressMap.get(pid)?.completed);
+    if (!unmet.length) return null;
+    const names = unmet.map(pid => lessonMap.get(pid)?.title ?? pid).join(', ');
+    return `Requires: ${names}`;
+  }
+
+  function getNextLesson(lesson: Lesson): Lesson | null {
+    const lessons = selectedTopic.lessons;
+    const idx = lessons.findIndex(l => l.id === lesson.id);
+    return idx >= 0 && idx < lessons.length - 1 ? lessons[idx + 1] : null;
   }
 </script>
 
@@ -84,51 +54,55 @@
 </div>
 
 <ul class="lesson-list">
-  {#each selectedTopic.lessons as lesson}
-    {@const status = getLessonStatus(lesson)}
-    {@const percentage = getLessonPercentage(lesson)}
-    {@const hint = getPrerequisiteHint(lesson)}
-    {@const hasScores = hasScoreData(lesson)}
-
-    <li class="lesson-list-item" class:unviewed={status === 'unviewed'} class:viewed={status === 'viewed'} class:completed={status === 'completed'}>
-
-      <!-- Main clickable area — navigates to Google Sites page -->
-      <button class="lesson-row-main" onclick={() => navigate(lesson)}>
+  {#each selectedTopic.lessons as lesson (lesson.id)}
+    {@const status  = getLessonStatus(lesson)}
+    {@const pct     = getRingPct(lesson)}
+    {@const prereq  = getPrereqHint(lesson)}
+    <li
+      class="lesson-list-item"
+      class:unviewed={status === 'unviewed'}
+      class:viewed={status === 'viewed'}
+      class:completed={status === 'completed'}
+    >
+      <button
+        class="lesson-row-main"
+        onclick={() => (modalLesson = lesson)}
+        aria-label="Open details for {lesson.title}"
+      >
         <div class="progress-ring-small">
           <svg viewBox="0 0 40 40">
-            <circle class="ring-bg" cx="20" cy="20" r="16" />
-            <circle class="ring-fill" cx="20" cy="20" r="16" stroke-dasharray={`${percentage}, 100.53`} />
+            <circle class="ring-bg"   cx="20" cy="20" r="16" />
+            <circle class="ring-fill" cx="20" cy="20" r="16"
+              stroke-dasharray="{pct}, 100.53" />
           </svg>
         </div>
 
         <div class="list-content">
           <span class="list-headline">{lesson.title}</span>
-          {#if hint}
-            <span class="list-supporting-text prereq-text">{hint}</span>
+          {#if prereq}
+            <span class="prereq-text">{prereq}</span>
+          {:else}
+            <span class="list-supporting-text">
+              {status === 'completed'
+                ? 'Completed'
+                : status === 'viewed'
+                ? 'In progress'
+                : 'Not started'}
+            </span>
           {/if}
         </div>
-      </button>
 
-      <!-- Meatball — opens score detail modal -->
-      <button
-        class="lesson-meatball"
-        class:has-scores={hasScores}
-        onclick={(e) => openDetail(lesson, e)}
-        aria-label="View score details for {lesson.title}"
-        title={hasScores ? 'View scores' : 'Score details'}
-      >
-        <span class="material-symbols-outlined">more_vert</span>
+        <span class="material-symbols-outlined list-trailing">chevron_right</span>
       </button>
     </li>
   {/each}
 </ul>
 
-<!-- Score detail modal -->
-{#if activeLesson}
+{#if modalLesson}
   <LessonDetailModal
-    lesson={activeLesson}
-    progress={progressMap.get(activeLesson.id) ?? null}
-    onClose={closeDetail}
-    onNavigate={() => { closeDetail(); navigate(activeLesson!); }}
+    lesson={modalLesson}
+    progress={getProgress(modalLesson)}
+    nextLesson={getNextLesson(modalLesson)}
+    onClose={() => (modalLesson = null)}
   />
 {/if}

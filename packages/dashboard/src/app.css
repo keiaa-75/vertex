@@ -60,7 +60,7 @@
   padding: 0;
 }
 
-/* Topic items remain full-button rows (no meatball) */
+/* Topic items */
 .topic-list-item {
   width: 100%;
   display: flex;
@@ -76,42 +76,37 @@
   font-family: var(--md-sys-typescale-body);
 }
 
-.topic-list-item:last-child {
-  border-bottom: none;
-}
+.topic-list-item:last-child { border-bottom: none; }
 
-.topic-list-item:hover {
-  background: var(--md-sys-color-surface-variant);
-}
+.topic-list-item:hover { background: var(--md-sys-color-surface-variant); }
 
 .topic-list-item:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: -2px;
 }
 
-/* ── Lesson list items — now a flex container, not a button ── */
-/* The row is split: .lesson-row-main (nav) + .lesson-meatball (detail) */
+/* ── Lesson list items ─────────────────────────────────────── */
+/* The entire row is now a single clickable button — no meatball.
+   Clicking anywhere on the row opens the detail modal.          */
 .lesson-list-item {
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border-bottom: 1px solid var(--md-sys-color-surface-variant);
   list-style: none;
   transition: background-color 0.15s;
 }
 
-.lesson-list-item:last-child {
-  border-bottom: none;
-}
+.lesson-list-item:last-child { border-bottom: none; }
 
-/* Clickable main area inside a lesson row */
+/* Full-width button — the only interactive child */
 .lesson-row-main {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--md-sys-spacing-md);
-  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-sm) var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
+  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -120,53 +115,17 @@
   transition: background-color 0.15s;
 }
 
-.lesson-list-item:not(.completed) .lesson-row-main:hover {
+.lesson-row-main:hover {
   background: var(--md-sys-color-surface-variant);
+}
+
+.lesson-list-item.completed .lesson-row-main:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .lesson-row-main:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: -2px;
-}
-
-/* Meatball icon button */
-.lesson-meatball {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: transparent;
-  border-radius: var(--md-sys-shape-corner-full);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--md-sys-color-on-surface-variant);
-  margin-right: var(--md-sys-spacing-sm);
-  transition: background-color 0.15s, color 0.15s;
-  opacity: 0.55;
-}
-
-.lesson-meatball:hover,
-.lesson-meatball.has-scores {
-  opacity: 1;
-}
-
-.lesson-meatball:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.lesson-meatball:focus-visible {
-  outline: 2px solid var(--md-sys-color-primary);
-  outline-offset: -2px;
-}
-
-.lesson-list-item.completed .lesson-meatball {
-  color: var(--md-sys-color-on-primary);
-}
-
-.lesson-list-item.completed .lesson-meatball:hover {
-  background: rgba(255, 255, 255, 0.15);
 }
 
 /* ── Shared list content ──────────────────────────────────── */
@@ -227,9 +186,7 @@
   transition: background-color 0.15s;
 }
 
-.back-btn:hover {
-  background: var(--md-sys-color-surface-variant);
-}
+.back-btn:hover { background: var(--md-sys-color-surface-variant); }
 
 .topic-detail-title {
   margin: 0;
@@ -312,7 +269,6 @@
 .lesson-list-item.completed .list-supporting-text,
 .lesson-list-item.completed .list-trailing { color: var(--md-sys-color-on-primary); }
 
-/* lesson-row-main inherits completed background from the li */
 .lesson-list-item.completed .lesson-row-main {
   color: var(--md-sys-color-on-primary);
 }

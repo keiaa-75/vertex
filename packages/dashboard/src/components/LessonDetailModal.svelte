@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { Lesson, Progress } from '@vertex/shared';
 
-  let { lesson, progress, onClose, onNavigate }: {
+  let { lesson, progress, nextLesson = null, onClose }: {
     lesson: Lesson;
     progress: Progress | null;
+    nextLesson: Lesson | null;
     onClose: () => void;
-    onNavigate: () => void;
   } = $props();
 
   // ── Score derivations ────────────────────────────────────────────────────
@@ -21,13 +21,22 @@
   type MasteryLevel = { label: string; tone: 'advanced' | 'proficient' | 'developing' | 'beginning' };
 
   function getMastery(score: number): MasteryLevel {
-    if (score >= 85) return { label: 'Advanced',    tone: 'advanced'   };
-    if (score >= 75) return { label: 'Proficient',  tone: 'proficient' };
-    if (score >= 60) return { label: 'Developing',  tone: 'developing' };
-    return              { label: 'Beginning',   tone: 'beginning'  };
+    if (score >= 85) return { label: 'Advanced',   tone: 'advanced'   };
+    if (score >= 75) return { label: 'Proficient', tone: 'proficient' };
+    if (score >= 60) return { label: 'Developing', tone: 'developing' };
+    return               { label: 'Beginning',  tone: 'beginning'  };
   }
 
   let mastery = $derived(posttestScore !== null ? getMastery(posttestScore) : null);
+
+  // Whether the post-test was attempted but did not reach the pass threshold.
+  // The pipeline now writes quizScore even on failure, so we can detect this
+  // via lastSubmission.status rather than absence of completed flag.
+  let postFailed = $derived(
+    posttestScore !== null &&
+    !progress?.completed &&
+    progress?.lastSubmission?.status === 'below_threshold'
+  );
 
   function fmtScore(n: number): string {
     return n % 1 === 0 ? `${n}%` : `${n.toFixed(1)}%`;
@@ -36,7 +45,21 @@
   function fmtDelta(d: number): string {
     const abs = Math.abs(d);
     const str = abs % 1 === 0 ? `${abs} pts` : `${abs.toFixed(1)} pts`;
-    return d > 0 ? `+${str}` : d < 0 ? `−${str}` : 'No change';
+    return d > 0 ? `+${str}` : d < 0 ? `\u2212${str}` : 'No change';
+  }
+
+  // ── Navigation ───────────────────────────────────────────────────────────
+  function navigate(url: string) {
+    if (!url || url === '#') return;
+    try {
+      if (window.top && window.top !== window.self) {
+        window.top.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    } catch {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   // Close on Escape
@@ -58,6 +81,7 @@
     aria-label="Lesson score detail"
     onclick={(e) => e.stopPropagation()}
     onkeydown={(e) => e.stopPropagation()}
+    tabindex=-1
   >
     <!-- Header -->
     <div class="modal-header">
@@ -94,21 +118,28 @@
         <div class="score-row-label">
           <span class="score-tag">Post-test</span>
           {#if posttestScore !== null}
-            <span class="score-pct">{fmtScore(posttestScore)}</span>
+            <span class="score-pct" class:score-pct--failed={postFailed}>
+              {fmtScore(posttestScore)}
+            </span>
           {:else}
             <span class="score-none">Not taken yet</span>
           {/if}
         </div>
         <div class="bar-track">
           <div
-            class="bar-fill bar-fill--post"
+            class="bar-fill"
+            class:bar-fill--post={!postFailed}
+            class:bar-fill--failed={postFailed}
             style:width={posttestScore !== null ? `${posttestScore}%` : '0%'}
             style:opacity={posttestScore !== null ? '1' : '0'}
           ></div>
         </div>
+        {#if postFailed}
+          <p class="pass-hint">75% required to pass</p>
+        {/if}
       </div>
 
-      <!-- Mastery + delta row (only when post-test exists) -->
+      <!-- Mastery + delta row (any time post-test has a score) -->
       {#if posttestScore !== null || delta !== null}
         <div class="insight-row">
           {#if mastery}
@@ -121,7 +152,7 @@
               class:delta-up={delta > 0}
               class:delta-down={delta < 0}
               class:delta-flat={delta === 0}
-              aria-label="Score change from pre-test to post-test: {fmtDelta(delta)}"
+              aria-label="Score change: {fmtDelta(delta)}"
             >
               {#if delta > 0}
                 <span class="delta-arrow" aria-hidden="true">↑</span>
@@ -135,7 +166,6 @@
           {/if}
         </div>
 
-        <!-- Diagnostic message -->
         {#if delta !== null}
           <p class="delta-message" class:positive={delta > 0} class:negative={delta < 0}>
             {#if delta > 10}
@@ -157,10 +187,31 @@
 
     <!-- Footer -->
     <div class="modal-footer">
-      <button class="btn-view-lesson" onclick={onNavigate}>
+      <button
+        class="btn-view-lesson"
+        onclick={() => navigate(lesson.googleSitesUrl)}
+        disabled={!lesson.googleSitesUrl}
+      >
         <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
         View Lesson
       </button>
+
+      <div class="modal-secondary-actions">
+        <button class="btn-modal-secondary" onclick={() => navigate('/vertex/')}>
+          <span class="material-symbols-outlined" aria-hidden="true">home</span>
+          Home
+        </button>
+
+        {#if nextLesson}
+          <button
+            class="btn-modal-secondary btn-modal-next"
+            onclick={() => navigate(nextLesson!.googleSitesUrl)}
+          >
+            Next
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+          </button>
+        {/if}
+      </div>
     </div>
   </div>
 </div>
@@ -270,11 +321,22 @@
     color: var(--md-sys-color-on-surface);
   }
 
+  .score-pct--failed {
+    color: var(--md-sys-color-error);
+  }
+
   .score-none {
     font-size: 0.8rem;
     font-style: italic;
     color: var(--md-sys-color-on-surface-variant);
     opacity: 0.7;
+  }
+
+  .pass-hint {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--md-sys-color-error);
+    font-style: italic;
   }
 
   .bar-track {
@@ -290,13 +352,9 @@
     transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  .bar-fill--pre {
-    background: var(--md-sys-color-tertiary);
-  }
-
-  .bar-fill--post {
-    background: var(--md-sys-color-primary);
-  }
+  .bar-fill--pre  { background: var(--md-sys-color-tertiary); }
+  .bar-fill--post { background: var(--md-sys-color-primary); }
+  .bar-fill--failed { background: var(--md-sys-color-error); }
 
   /* ── Insight row ────────────────────────────────────────────── */
   .insight-row {
@@ -315,25 +373,10 @@
     border-radius: var(--md-sys-shape-corner-full);
   }
 
-  .mastery-advanced {
-    background: #D1FAE5;
-    color: #065F46;
-  }
-
-  .mastery-proficient {
-    background: var(--md-sys-color-primary-container);
-    color: var(--md-sys-color-primary);
-  }
-
-  .mastery-developing {
-    background: #FEF3C7;
-    color: #92400E;
-  }
-
-  .mastery-beginning {
-    background: #FEE2E2;
-    color: #991B1B;
-  }
+  .mastery-advanced   { background: #D1FAE5; color: #065F46; }
+  .mastery-proficient { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary); }
+  .mastery-developing { background: #FEF3C7; color: #92400E; }
+  .mastery-beginning  { background: #FEE2E2; color: #991B1B; }
 
   .delta-pill {
     display: inline-flex;
@@ -345,25 +388,11 @@
     border-radius: var(--md-sys-shape-corner-full);
   }
 
-  .delta-up {
-    background: #D1FAE5;
-    color: #065F46;
-  }
+  .delta-up   { background: #D1FAE5; color: #065F46; }
+  .delta-down { background: #FEE2E2; color: #991B1B; }
+  .delta-flat { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); }
 
-  .delta-down {
-    background: #FEE2E2;
-    color: #991B1B;
-  }
-
-  .delta-flat {
-    background: var(--md-sys-color-surface-variant);
-    color: var(--md-sys-color-on-surface-variant);
-  }
-
-  .delta-arrow {
-    font-style: normal;
-    line-height: 1;
-  }
+  .delta-arrow { font-style: normal; line-height: 1; }
 
   .delta-message {
     margin: 0;
@@ -378,6 +407,9 @@
   /* ── Footer ─────────────────────────────────────────────────── */
   .modal-footer {
     padding: 0 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .btn-view-lesson {
@@ -400,11 +432,45 @@
     transition: box-shadow 0.2s, transform 0.12s;
   }
 
-  .btn-view-lesson:hover {
-    box-shadow: var(--md-sys-elevation-2);
+  .btn-view-lesson:hover  { box-shadow: var(--md-sys-elevation-2); }
+  .btn-view-lesson:active { transform: scale(0.97); }
+
+  .btn-view-lesson:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
-  .btn-view-lesson:active {
-    transform: scale(0.97);
+  .modal-secondary-actions {
+    display: flex;
+    gap: 0.5rem;
   }
+
+  .btn-modal-secondary {
+    all: unset;
+    box-sizing: border-box;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+    border-radius: var(--md-sys-shape-corner-full);
+    font-family: var(--md-sys-typescale-body);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+  }
+
+  .btn-modal-secondary:hover  { background: #E2E8F0; }
+  .btn-modal-secondary:active { transform: scale(0.97); }
+
+  .btn-modal-next {
+    background: var(--md-sys-color-secondary);
+    color: var(--md-sys-color-on-secondary);
+  }
+
+  .btn-modal-next:hover { opacity: 0.88; background: var(--md-sys-color-secondary); }
 </style>
