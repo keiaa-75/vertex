@@ -55,16 +55,29 @@ function authHeaders_() {
 
 
 /**
+ * Converts a single JS value to a Firestore typed value object.
+ * Handles: string, number, boolean, null, plain object (→ mapValue).
+ */
+function toFirestoreValue_(value) {
+  if (typeof value === 'string')  return { stringValue: value };
+  if (typeof value === 'number')  return { doubleValue: value };
+  if (typeof value === 'boolean') return { booleanValue: value };
+  if (value === null)             return { nullValue: 'NULL_VALUE' };
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return { mapValue: { fields: toFirestoreFields_(value) } };
+  }
+  // Fallback for unhandled types — write as null rather than silently drop
+  return { nullValue: 'NULL_VALUE' };
+}
+
+/**
  * Converts a plain JS object into Firestore's typed field format.
- * Handles: string, number, boolean, null.
+ * Handles: string, number, boolean, null, nested objects (→ mapValue).
  */
 function toFirestoreFields_(obj) {
   const fields = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'string') fields[key] = { stringValue: value };
-    else if (typeof value === 'number') fields[key] = { doubleValue: value };
-    else if (typeof value === 'boolean') fields[key] = { booleanValue: value };
-    else if (value === null) fields[key] = { nullValue: 'NULL_VALUE' };
+  for (const key of Object.keys(obj)) {
+    fields[key] = toFirestoreValue_(obj[key]);
   }
   return fields;
 }
@@ -72,6 +85,8 @@ function toFirestoreFields_(obj) {
 /**
  * Writes (patch/merge) a Firestore document at the given path.
  * Uses PATCH with updateMask so existing fields not in `data` are preserved.
+ * Top-level keys in `data` are the field names added to the updateMask;
+ * nested objects are serialised as mapValue and replace the entire map.
  *
  * @param {string} docPath  - e.g. 'progress/uid_lessonId'
  * @param {Object} data     - Plain JS object of fields to write
@@ -201,69 +216,108 @@ function calculateQuizScore_(form, freshResponse) {
 }
 
 function onFormSubmit(e) {
+  const response = e.response;
+  const respondentEmail = response.getRespondentEmail();
+
+  // 1. Resolve UID — if this fails we have nowhere to write, so bail early
+  const uid = resolveUidFromEmail(respondentEmail);
+  if (!uid) {
+    Logger.log('SKIPPED: Email not found in users collection. Student must complete profile setup first.');
+    return;
+  }
+
+  // 2. Extract lessonId and formType
+  const lessonId = extractLessonId_(response);
+  if (!lessonId) {
+    Logger.log('SKIPPED: Could not determine lessonId from form.');
+    return;
+  }
+
+  const formType = extractFormType_(response);
+  if (!formType || (formType !== 'pre' && formType !== 'post')) {
+    Logger.log(`SKIPPED: Invalid formType '${formType}'. Expected 'pre' or 'post'.`);
+    return;
+  }
+
+  // 3. From here we have uid + lessonId, so all errors can be written to Firestore
+  const docPath = `progress/${uid}_${lessonId}`;
+
   try {
-    const response = e.response;
-    const respondentEmail = response.getRespondentEmail();
-
-    // 1. Resolve UID
-    const uid = resolveUidFromEmail(respondentEmail);
-    if (!uid) {
-      Logger.log('SKIPPED: Email not found. Student must complete their profile first.');
-      return;
-    }
-
-    // 2. Extract lessonId
-    const lessonId = extractLessonId_(response);
-    if (!lessonId) {
-      Logger.log('SKIPPED: Could not determine lessonId from form.');
-      return;
-    }
-
-    // 3. Extract formType
-    const formType = extractFormType_(response);
-    if (!formType || (formType !== 'pre' && formType !== 'post')) {
-      Logger.log(`SKIPPED: Invalid formType '${formType}'. Expected 'pre' or 'post'.`);
-      return;
-    }
-
-    // 4. Document path: progress/{uid}_{lessonId}
-    const docPath = `progress/${uid}_${lessonId}`;
-
-    // 5. Write based on type
     if (formType === 'post') {
       const form = FormApp.openById(e.source.getId());
       const freshResponse = form.getResponse(response.getId());
-
       const { score, maxScore } = calculateQuizScore_(form, freshResponse);
       const percentage = (score / maxScore) * 100;
+      const passed = percentage >= 75;
 
-      if (percentage >= 75) {
+      const lastSubmission = {
+        formType: 'post',
+        submittedAt: new Date().toISOString(),
+        score: percentage,
+        status: passed ? 'ok' : 'below_threshold'
+      };
+
+      if (passed) {
         patchDocument_(docPath, {
           userId:      uid,
           lessonId:    lessonId,
           completed:   true,
           completedAt: new Date().toISOString(),
           quizScore:   percentage,
-          viewed:      true
+          viewed:      true,
+          lastSubmission,
+          pipelineError: null  // clear any prior error now that we have a clean result
         });
         Logger.log(`SUCCESS: Post-test passed (${percentage.toFixed(1)}%). Marked completed.`);
       } else {
-        Logger.log(`SKIPPED: Score ${percentage.toFixed(1)}% is below 75%. Not marked completed.`);
+        // Score recorded but not passed — write lastSubmission so navigator can surface the score
+        patchDocument_(docPath, {
+          userId:    uid,
+          lessonId:  lessonId,
+          lastSubmission,
+          pipelineError: null
+        });
+        Logger.log(`RECORDED: Score ${percentage.toFixed(1)}% — below threshold. lastSubmission written, progress not advanced.`);
       }
 
     } else {
+      // pre-test
       patchDocument_(docPath, {
         userId:   uid,
         lessonId: lessonId,
         viewed:   true,
-        viewedAt: new Date().toISOString()
+        viewedAt: new Date().toISOString(),
+        lastSubmission: {
+          formType:    'pre',
+          submittedAt: new Date().toISOString(),
+          score:       null,
+          status:      'ok'
+        },
+        pipelineError: null
       });
       Logger.log('SUCCESS: Pre-test submitted. Marked viewed.');
     }
 
   } catch (err) {
-    Logger.log(`ERROR: ${err.message}`);
-    throw err;
+    Logger.log(`ERROR in write phase: ${err.message}`);
+
+    // Surface the error to the student via the navigator's status line.
+    // Best-effort — if this also fails we can only log.
+    try {
+      patchDocument_(docPath, {
+        userId:   uid,
+        lessonId: lessonId,
+        pipelineError: {
+          message:    err.message,
+          occurredAt: new Date().toISOString()
+        }
+      });
+      Logger.log('pipelineError written to progress document.');
+    } catch (writeErr) {
+      Logger.log(`Failed to write pipelineError: ${writeErr.message}`);
+    }
+
+    throw err;  // re-throw so GAS marks the trigger execution as failed
   }
 }
 

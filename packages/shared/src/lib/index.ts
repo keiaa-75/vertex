@@ -9,7 +9,12 @@ export {
   startProgressMonitor,
   stopProgressMonitor,
 } from './stores/progress-monitor';
-export type { ProgressMonitorState, Progress } from './stores/progress-monitor';
+export type {
+  ProgressMonitorState,
+  Progress,
+  LastSubmission,
+  PipelineError,
+} from './stores/progress-monitor';
 
 // Progress write helpers (used by modules)
 export { markInteracted } from './stores/progress-trigger';

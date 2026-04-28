@@ -2,6 +2,18 @@ import { writable } from 'svelte/store';
 import { collection, onSnapshot, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
+export interface LastSubmission {
+  formType: 'pre' | 'post';
+  submittedAt: string;
+  score: number | null;
+  status: 'ok' | 'below_threshold';
+}
+
+export interface PipelineError {
+  message: string;
+  occurredAt: string;
+}
+
 export interface Progress {
   lessonId: string;
   userId: string;
@@ -12,6 +24,8 @@ export interface Progress {
   completed: boolean;
   completedAt: Timestamp | null;
   quizScore: number | null;
+  lastSubmission: LastSubmission | null;
+  pipelineError: PipelineError | null;
 }
 
 export interface ProgressMonitorState {

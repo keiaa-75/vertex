@@ -10,16 +10,44 @@ html, body {
 }
 
 /* ── Shell container ─────────────────────────────────────── */
-/* justify-content and padding may be overridden by inline style
-   from the align= and padding= URL params. */
+/*
+  Column flex so the optional status line stacks above the buttons.
+  align-items is overridden by inline style from the align= URL param.
+  justify-content: center vertically centers the group in the iframe.
+*/
 .navigator-shell {
   min-height: 56px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   padding: 0.5rem;
 }
+
+/* ── Button row ──────────────────────────────────────────── */
+/* Back and forward buttons always sit side-by-side in a row. */
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Status line ─────────────────────────────────────────── */
+.status-text {
+  font-family: var(--md-sys-typescale-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+.status-info    { color: var(--md-sys-color-on-surface-variant); }
+.status-success { color: var(--md-sys-color-completed); }
+/* Amber-700 — warm enough to signal caution, readable on white */
+.status-warning { color: #B45309; }
+.status-error   { color: var(--md-sys-color-error); }
 
 /* ── Shared button base ──────────────────────────────────── */
 .nav-btn {
@@ -42,7 +70,6 @@ html, body {
 }
 
 /* ── Forward / proceed button ────────────────────────────── */
-/* Active state */
 .nav-btn.active {
   background: #FFD700;
   color: #0055AA;
@@ -53,7 +80,6 @@ html, body {
   box-shadow: var(--md-sys-elevation-2);
 }
 
-/* Locked state */
 .nav-btn.locked {
   background: var(--md-sys-color-surface-variant);
   color: var(--md-sys-color-on-surface-variant);
@@ -62,7 +88,6 @@ html, body {
 }
 
 /* ── Back button ─────────────────────────────────────────── */
-/* Tonal style — secondary action, doesn't compete with forward. */
 .nav-btn.back-btn {
   background: var(--md-sys-color-surface-variant);
   color: var(--md-sys-color-on-surface);
