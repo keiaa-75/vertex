@@ -106,6 +106,8 @@ html, body {
   flex-direction: column;
   gap: 0.875rem;
   padding: 1.25rem;
+  max-height: 100svh;
+  overflow-y: auto;
   background: var(--md-sys-color-surface);
   font-family: var(--md-sys-typescale-body);
   -webkit-font-smoothing: antialiased;
