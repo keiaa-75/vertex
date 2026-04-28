@@ -6,7 +6,6 @@ export interface LastSubmission {
   formType: 'pre' | 'post' | 'unknown';
   submittedAt: string;
   score: number | null;
-  // 'processing' — phase 1 ACK written by GAS, phase 2 not yet complete
   status: 'ok' | 'below_threshold' | 'processing';
 }
 
@@ -24,6 +23,10 @@ export interface Progress {
   interactedAt: Timestamp | null;
   completed: boolean;
   completedAt: Timestamp | null;
+  /** Percentage score (0–100) from the pre-test form, or null if the form
+   *  was ungraded or the student hasn't submitted yet. */
+  pretestScore: number | null;
+  /** Percentage score (0–100) from the post-test form. */
   quizScore: number | null;
   lastSubmission: LastSubmission | null;
   pipelineError: PipelineError | null;
@@ -46,10 +49,6 @@ export const progressMonitorStore = { subscribe };
 
 let unsubscribe: (() => void) | null = null;
 
-/**
- * Subscribes to the progress collection filtered by the current user's ID.
- * This query satisfies Firestore security rules and allows real-time sync.
- */
 export function startProgressMonitor(uid: string) {
   if (unsubscribe) unsubscribe();
 
@@ -77,9 +76,6 @@ export function startProgressMonitor(uid: string) {
   );
 }
 
-/**
- * Cleans up the Firestore listener to prevent memory leaks.
- */
 export function stopProgressMonitor() {
   if (unsubscribe) {
     unsubscribe();

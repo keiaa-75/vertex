@@ -11,10 +11,7 @@ const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_I
 
 /**
  * Mints a short-lived OAuth2 access token from the service account credentials.
- * Caches the token in Script Properties for up to 1 hour (with a 90s safety margin)
- * to avoid re-fetching on every execution. The cache lives server-side only —
- * Script Properties are never exposed to clients, so the risk profile is flat
- * relative to the SA key already stored there.
+ * Caches the token in Script Properties for up to 1 hour (with a 90s safety margin).
  */
 function getAccessToken_() {
   const props  = PropertiesService.getScriptProperties();
@@ -70,7 +67,6 @@ function authHeaders_() {
 
 /**
  * Converts a single JS value to a Firestore typed value object.
- * Handles: string, number, boolean, null, plain object (→ mapValue).
  */
 function toFirestoreValue_(value) {
   if (typeof value === 'string')  return { stringValue: value };
@@ -97,9 +93,6 @@ function toFirestoreFields_(obj) {
 /**
  * Writes (patch/merge) a Firestore document at the given path.
  * Uses PATCH with updateMask so existing fields not in `data` are preserved.
- *
- * @param {string} docPath  - e.g. 'progress/uid_lessonId'
- * @param {Object} data     - Plain JS object of fields to write
  */
 function patchDocument_(docPath, data) {
   const fields = toFirestoreFields_(data);
@@ -171,47 +164,61 @@ function resolveUidFromEmail(email) {
 }
 
 /**
- * Calculates quiz score manually from item-level responses.
- * getScore()/getMaxScore() are unreliable on FormResponse objects
- * in library execution contexts — this is the stable alternative.
+ * Calculates a percentage score from a form response.
+ *
+ * Returns { score, maxScore, percentage } or null if the form has no
+ * gradable items (i.e. the form isn't set up with point values — common
+ * for pre-tests that educators treat as pure knowledge checks).
+ *
+ * Safe to call for both pre-tests and post-tests.
  */
-function calculateQuizScore_(form, freshResponse) {
-  let score = 0;
-  for (const item of freshResponse.getGradableItemResponses()) {
-    score += item.getScore() || 0;
-  }
-
-  const gradableTypes = {
-    [FormApp.ItemType.MULTIPLE_CHOICE]: i => i.asMultipleChoiceItem().getPoints(),
-    [FormApp.ItemType.CHECKBOX]:        i => i.asCheckboxItem().getPoints(),
-    [FormApp.ItemType.LIST]:            i => i.asListItem().getPoints(),
-    [FormApp.ItemType.PARAGRAPH_TEXT]:  i => i.asParagraphTextItem().getPoints(),
-    [FormApp.ItemType.TEXT]:            i => i.asTextItem().getPoints(),
-    [FormApp.ItemType.SCALE]:           i => i.asScaleItem().getPoints(),
-    [FormApp.ItemType.GRID]:            i => i.asGridItem().getPoints(),
-    [FormApp.ItemType.DATE]:            i => i.asDateItem().getPoints(),
-    [FormApp.ItemType.TIME]:            i => i.asTimeItem().getPoints(),
-  };
-
-  let maxScore = 0;
-  for (const item of form.getItems()) {
-    const getter = gradableTypes[item.getType()];
-    if (getter) {
-      try { maxScore += getter(item) || 0; } catch (_) {}
+function calculateScore_(form, formResponse) {
+  try {
+    let score = 0;
+    for (const item of formResponse.getGradableItemResponses()) {
+      score += item.getScore() || 0;
     }
-  }
 
-  return {
-    score,
-    maxScore: maxScore || 1
-  };
+    const gradableTypes = {
+      [FormApp.ItemType.MULTIPLE_CHOICE]: i => i.asMultipleChoiceItem().getPoints(),
+      [FormApp.ItemType.CHECKBOX]:        i => i.asCheckboxItem().getPoints(),
+      [FormApp.ItemType.LIST]:            i => i.asListItem().getPoints(),
+      [FormApp.ItemType.PARAGRAPH_TEXT]:  i => i.asParagraphTextItem().getPoints(),
+      [FormApp.ItemType.TEXT]:            i => i.asTextItem().getPoints(),
+      [FormApp.ItemType.SCALE]:           i => i.asScaleItem().getPoints(),
+      [FormApp.ItemType.GRID]:            i => i.asGridItem().getPoints(),
+      [FormApp.ItemType.DATE]:            i => i.asDateItem().getPoints(),
+      [FormApp.ItemType.TIME]:            i => i.asTimeItem().getPoints(),
+    };
+
+    let maxScore = 0;
+    for (const item of form.getItems()) {
+      const getter = gradableTypes[item.getType()];
+      if (getter) {
+        try { maxScore += getter(item) || 0; } catch (_) {}
+      }
+    }
+
+    if (maxScore === 0) {
+      Logger.log('Form has no gradable items — score recorded as null.');
+      return null;
+    }
+
+    const percentage = (score / maxScore) * 100;
+    Logger.log(`Score: ${score}/${maxScore} = ${percentage.toFixed(1)}%`);
+    return { score, maxScore, percentage };
+
+  } catch (err) {
+    Logger.log(`calculateScore_ failed: ${err.message}`);
+    return null;
+  }
 }
 
 function onFormSubmit(e) {
   const response        = e.response;
   const respondentEmail = response.getRespondentEmail();
 
-  // ── Resolve UID — if this fails we have nowhere to write, bail early ──
+  // ── Resolve UID ───────────────────────────────────────────────────────
   const uid = resolveUidFromEmail(respondentEmail);
   if (!uid) {
     Logger.log('SKIPPED: Email not found in users collection. Student must complete profile setup first.');
@@ -233,9 +240,6 @@ function onFormSubmit(e) {
   const docPath = `progress/${uid}_${lessonId}`;
 
   // ── Phase 1: Acknowledge immediately ─────────────────────────────────
-  // Written before any fallible processing. Navigator reads this sentinel
-  // and shows "Submission received — processing…" rather than staying
-  // silently locked if the processing phase fails.
   try {
     patchDocument_(docPath, {
       userId:   uid,
@@ -250,27 +254,28 @@ function onFormSubmit(e) {
     });
     Logger.log(`Phase 1 ACK written for ${uid}_${lessonId} (${formType})`);
   } catch (ackErr) {
-    // If even the acknowledgment write fails, something is fundamentally wrong
-    // with the Firestore connection or service account. Log and bail — there
-    // is nothing safe to do from here.
     Logger.log(`FATAL: Phase 1 ACK write failed: ${ackErr.message}`);
     throw ackErr;
   }
 
-  // ── Phase 2: Process and write final state ────────────────────────────
+  // ── Phase 2: Score, classify, write ──────────────────────────────────
   try {
+    // Open form and fetch a fresh response object for both form types.
+    // getGradableItemResponses() requires the response to be fetched
+    // via the form, not the trigger event object directly.
+    const form          = FormApp.openById(e.source.getId());
+    const freshResponse = form.getResponse(response.getId());
+    const scoreResult   = calculateScore_(form, freshResponse);
+
     if (formType === 'post') {
-      const form          = FormApp.openById(e.source.getId());
-      const freshResponse = form.getResponse(response.getId());
-      const { score, maxScore } = calculateQuizScore_(form, freshResponse);
-      const percentage    = (score / maxScore) * 100;
-      const passed        = percentage >= 75;
+      const percentage = scoreResult ? scoreResult.percentage : null;
+      const passed     = percentage !== null && percentage >= 75;
 
       const lastSubmission = {
         formType:    'post',
         submittedAt: new Date().toISOString(),
         score:       percentage,
-        status:      passed ? 'ok' : 'below_threshold'
+        status:      percentage === null ? 'ok' : (passed ? 'ok' : 'below_threshold')
       };
 
       if (passed) {
@@ -292,31 +297,33 @@ function onFormSubmit(e) {
           lastSubmission,
           pipelineError: null
         });
-        Logger.log(`RECORDED: Score ${percentage.toFixed(1)}% — below threshold. lastSubmission written, progress not advanced.`);
+        Logger.log(`RECORDED: Score ${percentage !== null ? percentage.toFixed(1) + '%' : 'ungraded'} — progress not advanced.`);
       }
 
     } else {
-      // pre-test
+      // pre-test: no passing threshold, just record and mark viewed
+      const percentage = scoreResult ? scoreResult.percentage : null;
+
       patchDocument_(docPath, {
-        userId:   uid,
-        lessonId: lessonId,
-        viewed:   true,
-        viewedAt: new Date().toISOString(),
+        userId:       uid,
+        lessonId:     lessonId,
+        viewed:       true,
+        viewedAt:     new Date().toISOString(),
+        pretestScore: percentage,
         lastSubmission: {
           formType:    'pre',
           submittedAt: new Date().toISOString(),
-          score:       null,
+          score:       percentage,
           status:      'ok'
         },
         pipelineError: null
       });
-      Logger.log('SUCCESS: Pre-test submitted. Marked viewed.');
+      Logger.log(`SUCCESS: Pre-test submitted. Score: ${percentage !== null ? percentage.toFixed(1) + '%' : 'ungraded'}. Marked viewed.`);
     }
 
   } catch (err) {
     Logger.log(`ERROR in Phase 2 processing: ${err.message}`);
 
-    // Best-effort: surface the error to the student via navigator's status line.
     try {
       patchDocument_(docPath, {
         userId:   uid,

@@ -60,7 +60,8 @@
   padding: 0;
 }
 
-.topic-list-item, .lesson-list-item {
+/* Topic items remain full-button rows (no meatball) */
+.topic-list-item {
   width: 100%;
   display: flex;
   align-items: center;
@@ -75,19 +76,100 @@
   font-family: var(--md-sys-typescale-body);
 }
 
-.topic-list-item:last-child, .lesson-list-item:last-child {
+.topic-list-item:last-child {
   border-bottom: none;
 }
 
-.topic-list-item:hover, .lesson-list-item:hover { 
-  background: var(--md-sys-color-surface-variant); 
+.topic-list-item:hover {
+  background: var(--md-sys-color-surface-variant);
 }
 
-.topic-list-item:focus-visible, .lesson-list-item:focus-visible {
+.topic-list-item:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: -2px;
 }
 
+/* ── Lesson list items — now a flex container, not a button ── */
+/* The row is split: .lesson-row-main (nav) + .lesson-meatball (detail) */
+.lesson-list-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+  list-style: none;
+  transition: background-color 0.15s;
+}
+
+.lesson-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Clickable main area inside a lesson row */
+.lesson-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-spacing-md);
+  padding: var(--md-sys-spacing-md) var(--md-sys-spacing-sm) var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--md-sys-typescale-body);
+  transition: background-color 0.15s;
+}
+
+.lesson-list-item:not(.completed) .lesson-row-main:hover {
+  background: var(--md-sys-color-surface-variant);
+}
+
+.lesson-row-main:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -2px;
+}
+
+/* Meatball icon button */
+.lesson-meatball {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-right: var(--md-sys-spacing-sm);
+  transition: background-color 0.15s, color 0.15s;
+  opacity: 0.55;
+}
+
+.lesson-meatball:hover,
+.lesson-meatball.has-scores {
+  opacity: 1;
+}
+
+.lesson-meatball:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.lesson-meatball:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -2px;
+}
+
+.lesson-list-item.completed .lesson-meatball {
+  color: var(--md-sys-color-on-primary);
+}
+
+.lesson-list-item.completed .lesson-meatball:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Shared list content ──────────────────────────────────── */
 .list-content {
   flex: 1;
   min-width: 0;
@@ -184,13 +266,13 @@
   transition: stroke-dasharray 0.4s ease, stroke 0.3s ease;
 }
 
-.topic-list-item:hover .ring-bg,
-.lesson-list-item:hover .ring-bg { stroke: #D1D5DB; }
+.topic-list-item:hover .ring-bg { stroke: #D1D5DB; }
 
 /* ── Status modifiers ─────────────────────────────────────── */
 .topic-list-item.unviewed .list-headline,
+.topic-list-item.unviewed .progress-text { color: var(--md-sys-color-unviewed); }
+
 .lesson-list-item.unviewed .list-headline,
-.topic-list-item.unviewed .progress-text,
 .lesson-list-item.unviewed .progress-text { color: var(--md-sys-color-unviewed); }
 
 .topic-list-item.viewed,
@@ -198,10 +280,13 @@
   border-left: 3px solid var(--md-sys-color-viewed);
   background-color: rgba(0, 180, 216, 0.05);
 }
+
 .topic-list-item.viewed .ring-fill,
 .lesson-list-item.viewed .ring-fill { stroke: var(--md-sys-color-tertiary); }
+
 .topic-list-item.viewed .progress-text,
 .lesson-list-item.viewed .progress-text { fill: var(--md-sys-color-tertiary); }
+
 .topic-list-item.viewed .list-headline,
 .lesson-list-item.viewed .list-headline { color: var(--md-sys-color-on-surface); }
 
@@ -210,18 +295,27 @@
   background-color: var(--md-sys-color-completed);
   color: var(--md-sys-color-on-primary);
 }
+
 .topic-list-item.completed .ring-fill,
 .lesson-list-item.completed .ring-fill { stroke: var(--md-sys-color-on-primary); }
+
 .topic-list-item.completed .ring-bg,
 .lesson-list-item.completed .ring-bg { stroke: rgba(255, 255, 255, 0.3); }
+
 .topic-list-item.completed .progress-text,
 .lesson-list-item.completed .progress-text { fill: var(--md-sys-color-on-primary); }
+
 .topic-list-item.completed .list-headline,
 .topic-list-item.completed .list-supporting-text,
 .topic-list-item.completed .list-trailing,
 .lesson-list-item.completed .list-headline,
 .lesson-list-item.completed .list-supporting-text,
 .lesson-list-item.completed .list-trailing { color: var(--md-sys-color-on-primary); }
+
+/* lesson-row-main inherits completed background from the li */
+.lesson-list-item.completed .lesson-row-main {
+  color: var(--md-sys-color-on-primary);
+}
 
 .prereq-text {
   font-size: 0.75rem;
@@ -231,8 +325,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .topic-list-item.completed .prereq-text,
 .lesson-list-item.completed .prereq-text { color: rgba(255, 255, 255, 0.9); }
+
 .topic-list-item.viewed .prereq-text,
 .lesson-list-item.viewed .prereq-text { color: var(--md-sys-color-tertiary); }
 
@@ -245,13 +341,16 @@
   border-bottom: 1px solid var(--md-sys-color-surface-variant);
   margin-bottom: 0;
 }
+
 .profile-title {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--md-sys-color-primary);
 }
+
 .profile-list  { list-style: none; margin: 0; padding: 0; }
+
 .profile-row {
   display: flex;
   align-items: center;
@@ -259,6 +358,7 @@
   padding: var(--md-sys-spacing-md) var(--md-sys-spacing-lg);
   border-bottom: 1px solid var(--md-sys-color-surface-variant);
 }
+
 .profile-row:last-child { border-bottom: none; }
 .edit-row    { padding-top: var(--md-sys-spacing-lg); justify-content: flex-end; }
 .edit-btn    { gap: var(--md-sys-spacing-sm); }
@@ -270,4 +370,5 @@
   padding-top: var(--md-sys-spacing-md);
   border-top: 1px solid var(--md-sys-color-surface-variant);
 }
+
 .form-actions .btn { flex: 1; }
