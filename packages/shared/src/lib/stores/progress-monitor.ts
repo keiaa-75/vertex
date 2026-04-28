@@ -3,10 +3,11 @@ import { collection, onSnapshot, query, where, Timestamp } from 'firebase/firest
 import { db } from '../firebase';
 
 export interface LastSubmission {
-  formType: 'pre' | 'post';
+  formType: 'pre' | 'post' | 'unknown';
   submittedAt: string;
   score: number | null;
-  status: 'ok' | 'below_threshold';
+  // 'processing' — phase 1 ACK written by GAS, phase 2 not yet complete
+  status: 'ok' | 'below_threshold' | 'processing';
 }
 
 export interface PipelineError {
@@ -29,15 +30,15 @@ export interface Progress {
 }
 
 export interface ProgressMonitorState {
-    map: Map<string, Progress>;
-    loading: boolean;
-    error: string | null;
+  map: Map<string, Progress>;
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: ProgressMonitorState = {
-    map: new Map(),
-    loading: false,
-    error: null
+  map: new Map(),
+  loading: false,
+  error: null
 };
 
 const { subscribe, set } = writable<ProgressMonitorState>(initialState);
@@ -50,38 +51,38 @@ let unsubscribe: (() => void) | null = null;
  * This query satisfies Firestore security rules and allows real-time sync.
  */
 export function startProgressMonitor(uid: string) {
-    if (unsubscribe) unsubscribe();
+  if (unsubscribe) unsubscribe();
 
-    set({ ...initialState, loading: true });
+  set({ ...initialState, loading: true });
 
-    const progressRef = collection(db, 'progress');
-    const q = query(progressRef, where('userId', '==', uid));
+  const progressRef = collection(db, 'progress');
+  const q = query(progressRef, where('userId', '==', uid));
 
-    unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-            const newMap = new Map<string, Progress>();
+  unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const newMap = new Map<string, Progress>();
 
-            for (const docSnap of snapshot.docs) {
-                const data = docSnap.data() as Progress;
-                newMap.set(data.lessonId, data);
-            }
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data() as Progress;
+        newMap.set(data.lessonId, data);
+      }
 
-            set({ map: newMap, loading: false, error: null });
-        },
-        (err) => {
-            console.error('Progress monitor error:', err);
-            set({ ...initialState, loading: false, error: 'Failed to sync progress.' });
-        }
-    );
+      set({ map: newMap, loading: false, error: null });
+    },
+    (err) => {
+      console.error('Progress monitor error:', err);
+      set({ ...initialState, loading: false, error: 'Failed to sync progress.' });
+    }
+  );
 }
 
 /**
  * Cleans up the Firestore listener to prevent memory leaks.
  */
 export function stopProgressMonitor() {
-    if (unsubscribe) {
-        unsubscribe();
-        unsubscribe = null;
-    }
+  if (unsubscribe) {
+    unsubscribe();
+    unsubscribe = null;
+  }
 }

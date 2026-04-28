@@ -10,11 +10,6 @@ html, body {
 }
 
 /* ── Shell container ─────────────────────────────────────── */
-/*
-  Column flex so the optional status line stacks above the buttons.
-  align-items is overridden by inline style from the align= URL param.
-  justify-content: center vertically centers the group in the iframe.
-*/
 .navigator-shell {
   min-height: 56px;
   display: flex;
@@ -26,7 +21,6 @@ html, body {
 }
 
 /* ── Button row ──────────────────────────────────────────── */
-/* Back and forward buttons always sit side-by-side in a row. */
 .btn-row {
   display: flex;
   align-items: center;
@@ -46,7 +40,6 @@ html, body {
 
 .status-info    { color: var(--md-sys-color-on-surface-variant); }
 .status-success { color: var(--md-sys-color-completed); }
-/* Amber-700 — warm enough to signal caution, readable on white */
 .status-warning { color: #B45309; }
 .status-error   { color: var(--md-sys-color-error); }
 
@@ -97,4 +90,24 @@ html, body {
 
 .nav-btn.back-btn:hover {
   background: #E2E8F0;
+}
+
+/* ── Loading spinner (shown during initializing / loading) ── */
+/*
+  Inline, no external dependency. Uses currentColor so it inherits
+  the locked button's muted text colour automatically.
+*/
+.nav-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: nav-spin 0.7s linear infinite;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+@keyframes nav-spin {
+  to { transform: rotate(360deg); }
 }

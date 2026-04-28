@@ -11,22 +11,33 @@ const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_I
 
 /**
  * Mints a short-lived OAuth2 access token from the service account credentials.
- * Scope: cloud-platform (covers Firestore read/write)
+ * Caches the token in Script Properties for up to 1 hour (with a 90s safety margin)
+ * to avoid re-fetching on every execution. The cache lives server-side only —
+ * Script Properties are never exposed to clients, so the risk profile is flat
+ * relative to the SA key already stored there.
  */
 function getAccessToken_() {
-  const saJson = PropertiesService.getScriptProperties().getProperty('FIREBASE_SA_KEY');
+  const props  = PropertiesService.getScriptProperties();
+  const cached = props.getProperty('CACHED_TOKEN');
+  const expiry = parseInt(props.getProperty('TOKEN_EXPIRY') || '0', 10);
+
+  if (cached && Math.floor(Date.now() / 1000) < expiry - 90) {
+    return cached;
+  }
+
+  const saJson = props.getProperty('FIREBASE_SA_KEY');
   if (!saJson) throw new Error('FIREBASE_SA_KEY missing in Script Properties.');
 
-  const sa = JSON.parse(saJson);
+  const sa  = JSON.parse(saJson);
   const now = Math.floor(Date.now() / 1000);
 
   const header = Utilities.base64EncodeWebSafe(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const claim  = Utilities.base64EncodeWebSafe(JSON.stringify({
-    iss: sa.client_email,
-    scope:'https://www.googleapis.com/auth/cloud-platform',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now
+    iss:   sa.client_email,
+    scope: 'https://www.googleapis.com/auth/cloud-platform',
+    aud:   'https://oauth2.googleapis.com/token',
+    exp:   now + 3600,
+    iat:   now
   }));
 
   const signature = Utilities.base64EncodeWebSafe(
@@ -36,23 +47,26 @@ function getAccessToken_() {
   const jwt = `${header}.${claim}.${signature}`;
 
   const res = UrlFetchApp.fetch('https://oauth2.googleapis.com/token', {
-    method: 'post',
+    method:      'post',
     contentType: 'application/x-www-form-urlencoded',
-    payload: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+    payload:     `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
   });
 
   const token = JSON.parse(res.getContentText()).access_token;
   if (!token) throw new Error('Failed to obtain access token from OAuth2 endpoint.');
+
+  props.setProperty('CACHED_TOKEN', token);
+  props.setProperty('TOKEN_EXPIRY', String(now + 3600));
+
   return token;
 }
 
 function authHeaders_() {
   return {
-    Authorization: `Bearer ${getAccessToken_()}`,
+    Authorization:  `Bearer ${getAccessToken_()}`,
     'Content-Type': 'application/json'
   };
 }
-
 
 /**
  * Converts a single JS value to a Firestore typed value object.
@@ -66,13 +80,11 @@ function toFirestoreValue_(value) {
   if (typeof value === 'object' && !Array.isArray(value)) {
     return { mapValue: { fields: toFirestoreFields_(value) } };
   }
-  // Fallback for unhandled types — write as null rather than silently drop
   return { nullValue: 'NULL_VALUE' };
 }
 
 /**
  * Converts a plain JS object into Firestore's typed field format.
- * Handles: string, number, boolean, null, nested objects (→ mapValue).
  */
 function toFirestoreFields_(obj) {
   const fields = {};
@@ -85,21 +97,19 @@ function toFirestoreFields_(obj) {
 /**
  * Writes (patch/merge) a Firestore document at the given path.
  * Uses PATCH with updateMask so existing fields not in `data` are preserved.
- * Top-level keys in `data` are the field names added to the updateMask;
- * nested objects are serialised as mapValue and replace the entire map.
  *
  * @param {string} docPath  - e.g. 'progress/uid_lessonId'
  * @param {Object} data     - Plain JS object of fields to write
  */
 function patchDocument_(docPath, data) {
   const fields = toFirestoreFields_(data);
-  const mask = Object.keys(fields)
+  const mask   = Object.keys(fields)
     .map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`)
     .join('&');
   const url = `${FIRESTORE_BASE}/${docPath}?${mask}`;
 
-  const res = UrlFetchApp.fetch(url, {
-    method: 'patch',
+  const res    = UrlFetchApp.fetch(url, {
+    method:  'patch',
     headers: authHeaders_(),
     payload: JSON.stringify({ fields })
   });
@@ -112,33 +122,19 @@ function patchDocument_(docPath, data) {
 
 /**
  * Runs a structured query against a collection and returns matching documents.
- *
- * @param  {string} collectionId
- * @param  {string} fieldPath
- * @param  {string} op            Firestore operator string e.g. 'EQUAL'
- * @param  {Object} value         Typed Firestore value e.g. { stringValue: 'foo' }
- * @param  {number} [limit=1]
- * @returns {Array}               Array of Firestore query result objects
  */
 function runQuery_(collectionId, fieldPath, op, value, limit) {
-  const url = `${FIRESTORE_BASE}:runQuery`;
-
+  const url  = `${FIRESTORE_BASE}:runQuery`;
   const body = {
     structuredQuery: {
-      from: [{ collectionId }],
-      where: {
-        fieldFilter: {
-          field: { fieldPath },
-          op,
-          value
-        }
-      },
+      from:  [{ collectionId }],
+      where: { fieldFilter: { field: { fieldPath }, op, value } },
       limit: limit || 1
     }
   };
 
-  const res = UrlFetchApp.fetch(url, {
-    method: 'post',
+  const res    = UrlFetchApp.fetch(url, {
+    method:  'post',
     headers: authHeaders_(),
     payload: JSON.stringify(body)
   });
@@ -178,10 +174,6 @@ function resolveUidFromEmail(email) {
  * Calculates quiz score manually from item-level responses.
  * getScore()/getMaxScore() are unreliable on FormResponse objects
  * in library execution contexts — this is the stable alternative.
- *
- * @param  {GoogleAppsScript.Forms.Form}         form
- * @param  {GoogleAppsScript.Forms.FormResponse} freshResponse
- * @returns {{ score: number, maxScore: number }}
  */
 function calculateQuizScore_(form, freshResponse) {
   let score = 0;
@@ -211,22 +203,21 @@ function calculateQuizScore_(form, freshResponse) {
 
   return {
     score,
-    maxScore: maxScore || 1 // fallback to 1 to avoid division by zero
+    maxScore: maxScore || 1
   };
 }
 
 function onFormSubmit(e) {
-  const response = e.response;
+  const response        = e.response;
   const respondentEmail = response.getRespondentEmail();
 
-  // 1. Resolve UID — if this fails we have nowhere to write, so bail early
+  // ── Resolve UID — if this fails we have nowhere to write, bail early ──
   const uid = resolveUidFromEmail(respondentEmail);
   if (!uid) {
     Logger.log('SKIPPED: Email not found in users collection. Student must complete profile setup first.');
     return;
   }
 
-  // 2. Extract lessonId and formType
   const lessonId = extractLessonId_(response);
   if (!lessonId) {
     Logger.log('SKIPPED: Could not determine lessonId from form.');
@@ -239,41 +230,65 @@ function onFormSubmit(e) {
     return;
   }
 
-  // 3. From here we have uid + lessonId, so all errors can be written to Firestore
   const docPath = `progress/${uid}_${lessonId}`;
 
+  // ── Phase 1: Acknowledge immediately ─────────────────────────────────
+  // Written before any fallible processing. Navigator reads this sentinel
+  // and shows "Submission received — processing…" rather than staying
+  // silently locked if the processing phase fails.
+  try {
+    patchDocument_(docPath, {
+      userId:   uid,
+      lessonId: lessonId,
+      lastSubmission: {
+        formType:    formType,
+        submittedAt: new Date().toISOString(),
+        score:       null,
+        status:      'processing'
+      },
+      pipelineError: null
+    });
+    Logger.log(`Phase 1 ACK written for ${uid}_${lessonId} (${formType})`);
+  } catch (ackErr) {
+    // If even the acknowledgment write fails, something is fundamentally wrong
+    // with the Firestore connection or service account. Log and bail — there
+    // is nothing safe to do from here.
+    Logger.log(`FATAL: Phase 1 ACK write failed: ${ackErr.message}`);
+    throw ackErr;
+  }
+
+  // ── Phase 2: Process and write final state ────────────────────────────
   try {
     if (formType === 'post') {
-      const form = FormApp.openById(e.source.getId());
+      const form          = FormApp.openById(e.source.getId());
       const freshResponse = form.getResponse(response.getId());
       const { score, maxScore } = calculateQuizScore_(form, freshResponse);
-      const percentage = (score / maxScore) * 100;
-      const passed = percentage >= 75;
+      const percentage    = (score / maxScore) * 100;
+      const passed        = percentage >= 75;
 
       const lastSubmission = {
-        formType: 'post',
+        formType:    'post',
         submittedAt: new Date().toISOString(),
-        score: percentage,
-        status: passed ? 'ok' : 'below_threshold'
+        score:       percentage,
+        status:      passed ? 'ok' : 'below_threshold'
       };
 
       if (passed) {
         patchDocument_(docPath, {
-          userId:      uid,
-          lessonId:    lessonId,
-          completed:   true,
-          completedAt: new Date().toISOString(),
-          quizScore:   percentage,
-          viewed:      true,
+          userId:        uid,
+          lessonId:      lessonId,
+          completed:     true,
+          completedAt:   new Date().toISOString(),
+          quizScore:     percentage,
+          viewed:        true,
           lastSubmission,
-          pipelineError: null  // clear any prior error now that we have a clean result
+          pipelineError: null
         });
         Logger.log(`SUCCESS: Post-test passed (${percentage.toFixed(1)}%). Marked completed.`);
       } else {
-        // Score recorded but not passed — write lastSubmission so navigator can surface the score
         patchDocument_(docPath, {
-          userId:    uid,
-          lessonId:  lessonId,
+          userId:        uid,
+          lessonId:      lessonId,
           lastSubmission,
           pipelineError: null
         });
@@ -299,10 +314,9 @@ function onFormSubmit(e) {
     }
 
   } catch (err) {
-    Logger.log(`ERROR in write phase: ${err.message}`);
+    Logger.log(`ERROR in Phase 2 processing: ${err.message}`);
 
-    // Surface the error to the student via the navigator's status line.
-    // Best-effort — if this also fails we can only log.
+    // Best-effort: surface the error to the student via navigator's status line.
     try {
       patchDocument_(docPath, {
         userId:   uid,
@@ -317,7 +331,7 @@ function onFormSubmit(e) {
       Logger.log(`Failed to write pipelineError: ${writeErr.message}`);
     }
 
-    throw err;  // re-throw so GAS marks the trigger execution as failed
+    throw err;
   }
 }
 

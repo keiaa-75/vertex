@@ -23,17 +23,6 @@
    *   padding     (optional)  Set to "none" to strip shell padding. Default: standard padding.
    *   showStatus  (optional)  Set to "true" to show a status line above the button describing
    *                           the student's submission state or any pipeline errors.
-   *
-   * Example Embed URLs
-   * ------------------
-   * Pretest page (gate: viewed, show status):
-   *   /navigator/?lessonId=parabola&gate=viewed&next=https://site/lesson&showStatus=true
-   *
-   * Lesson page (gate: interacted, browser back, show status):
-   *   /navigator/?lessonId=parabola&gate=interacted&next=https://site/posttest&back=true&showStatus=true
-   *
-   * Posttest page (gate: completed, show status):
-   *   /navigator/?lessonId=parabola&gate=completed&next=https://site/dashboard&showStatus=true
    */
 
   import { onMount } from 'svelte';
@@ -50,21 +39,20 @@
   // ---- URL parameters --------------------------------------------------
   const params = new URLSearchParams(window.location.search);
 
-  const lessonId   = params.get('lessonId') ?? '';
-  const gate       = (params.get('gate') ?? '') as 'viewed' | 'interacted' | 'completed';
-  const next       = params.get('next') ?? '#';
-  const label      = params.get('label') ?? 'Continue →';
-  const home       = params.get('home') ?? '/vertex/';
-  const back       = params.get('back');
-  const backLabel  = params.get('backLabel') ?? '← Back';
-  const align      = params.get('align') ?? 'center';
-  const padding    = params.get('padding');
+  const lessonId  = params.get('lessonId') ?? '';
+  const gate      = (params.get('gate') ?? '') as 'viewed' | 'interacted' | 'completed';
+  const next      = params.get('next') ?? '#';
+  const label     = params.get('label') ?? 'Continue →';
+  const home      = params.get('home') ?? '/vertex/';
+  const back      = params.get('back');
+  const backLabel = params.get('backLabel') ?? '← Back';
+  const align     = params.get('align') ?? 'center';
+  const padding   = params.get('padding');
   const showStatus = params.get('showStatus') === 'true';
 
   const showBack = back !== null;
 
   // ---- Derived styles --------------------------------------------------
-  // align-items controls horizontal placement in column flex
   const alignMap: Record<string, string> = {
     left:   'flex-start',
     center: 'center',
@@ -86,17 +74,27 @@
   let unsubAuth: (() => void) | null = null;
   let unsubDoc:  (() => void) | null = null;
 
+  // ---- Phase ----------------------------------------------------------
+  // Drives the template. Prevents blank renders during SDK initialization
+  // by always showing a determinate (if loading) UI from first paint.
+  type NavPhase = 'initializing' | 'unauthenticated' | 'loading' | 'ready';
+
+  let phase = $derived.by<NavPhase>(() => {
+    if (!authReady)  return 'initializing';
+    if (!user)       return 'unauthenticated';
+    if (loadingDoc)  return 'loading';
+    return 'ready';
+  });
+
   // ---- Status line -----------------------------------------------------
   type StatusTone = 'info' | 'success' | 'warning' | 'error';
   interface StatusInfo { text: string; tone: StatusTone; }
 
   let statusInfo = $derived.by<StatusInfo | null>(() => {
-    if (!showStatus || !authReady || !user) return null;
+    if (!showStatus || phase !== 'ready') return null;
 
     const p = progressData;
 
-    // Pipeline errors are only relevant for form-gated stages (viewed, completed).
-    // The interacted gate is set client-side by markInteracted, not by GAS.
     if ((gate === 'viewed' || gate === 'completed') && p?.pipelineError) {
       return {
         text: 'Something went wrong processing your submission. Please let your teacher know.',
@@ -107,6 +105,8 @@
     switch (gate) {
       case 'viewed':
         if (p?.viewed) return { text: 'Pre-test submitted', tone: 'success' };
+        if (p?.lastSubmission?.status === 'processing')
+          return { text: 'Submission received — processing…', tone: 'info' };
         return { text: 'Submit the pre-test form above to unlock this button.', tone: 'info' };
 
       case 'interacted':
@@ -115,11 +115,12 @@
 
       case 'completed': {
         if (p?.completed) {
-          // Prefer the score from the submission record; fall back to quizScore
           const score = p.lastSubmission?.score ?? p.quizScore;
           const scoreStr = score != null ? ` with ${score.toFixed(1)}%` : '';
           return { text: `Post-test passed${scoreStr}`, tone: 'success' };
         }
+        if (p?.lastSubmission?.status === 'processing')
+          return { text: 'Post-test received — grading in progress…', tone: 'info' };
         if (p?.lastSubmission?.status === 'below_threshold') {
           const score = p.lastSubmission.score;
           const scoreStr = score != null ? `${score.toFixed(1)}%` : 'Your score';
@@ -169,7 +170,7 @@
   // ---- Auth subscription -----------------------------------------------
   onMount(() => {
     unsubAuth = onAuthStateChanged(auth, (firebaseUser: User | null) => {
-      user = firebaseUser;
+      user      = firebaseUser;
       authReady = true;
     });
 
@@ -217,10 +218,30 @@
 </script>
 
 <main class="navigator-shell" style={shellStyle}>
-  {#if !authReady || loadingDoc}
-    <!-- Loading — intentionally blank -->
 
-  {:else if !user}
+  {#if phase === 'initializing' || phase === 'loading'}
+    {#if showStatus}
+      <p class="status-text status-info" aria-live="polite">
+        Checking your progress…
+      </p>
+    {/if}
+    <div class="btn-row">
+      {#if showBack}
+        <!--
+          Back button is always safe to show immediately — it has no dependency
+          on auth or Firestore state.
+        -->
+        <button class="nav-btn back-btn" onclick={navigateBack} aria-label="Go back">
+          {backLabel}
+        </button>
+      {/if}
+      <button class="nav-btn locked" disabled aria-label="Checking progress…">
+        <span class="nav-spinner" aria-hidden="true"></span>
+        {label}
+      </button>
+    </div>
+
+  {:else if phase === 'unauthenticated'}
     <div class="btn-row">
       {#if showBack}
         <button class="nav-btn back-btn" onclick={navigateBack} aria-label="Go back">
@@ -237,12 +258,12 @@
     </div>
 
   {:else}
+    <!-- phase === 'ready' -->
     {#if showStatus && statusInfo}
       <p class="status-text status-{statusInfo.tone}" aria-live="polite">
         {statusInfo.text}
       </p>
     {/if}
-
     <div class="btn-row">
       {#if showBack}
         <button class="nav-btn back-btn" onclick={navigateBack} aria-label="Go back">
@@ -252,7 +273,7 @@
       <button
         class="nav-btn"
         class:active={gateMet === true}
-        class:locked={gateMet === false}
+        class:locked={gateMet !== true}
         disabled={gateMet !== true}
         onclick={() => navigateTo(next)}
         aria-label={gateMet ? 'Proceed to next page' : 'Cannot proceed yet'}
@@ -261,4 +282,5 @@
       </button>
     </div>
   {/if}
+
 </main>
