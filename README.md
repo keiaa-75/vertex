@@ -11,14 +11,14 @@
     <img alt = "Vite" src="https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white"/>
 </p>
 
-**Vertex** is a modular collection of **interactive components** designed to be embedded within a host platform.
+**Vertex** is a modular collection of **learning components** designed to be embedded within a host platform.
 
 Together, this empowers educators to manage course structure static content visually. At the same time developers maintain interactive lessons, quizzes, and progress tracking independently via GitHub Pages and Firebase.
 
 ## How it works
 
 1. The host page embeds Vertex modules via `<iframe>`.
-2. All modules and the Dashboard share the same origin, which enables automatic Firebase session sharing via IndexedDB.
+2. All modules and the dashboard share the same origin, which enables automatic Firebase session sharing via IndexedDB.
 3. Navigation uses `window.top.location.href` to move users between host pages.
 4. Progress is centralized: one Firestore document per `(user, lesson)` tracks `viewed` and `completed` states, regardless of how many iframes a lesson page contains.
 
@@ -30,9 +30,15 @@ Together, this empowers educators to manage course structure static content visu
 - `node` version 18 or higher
 - `pnpm` version 8 or higher
 
+Run the following command to settle the project dependencies:
+
+```bash
+pnpm install
+```
+
 ### Environment variables
 
-Create `.env.local` in **`packages/dashboard/`** (where the Vite config lives):
+Create `.env` in the repo root with your Firebase config:
 
 ```env
 VITE_FIREBASE_API_KEY=your_api_key
@@ -43,9 +49,16 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 ```
 
-> **Note:** If you're using a monorepo workspace manager, you may also place `.env.local` in the root — just ensure it gets copied or symlinked into `packages/dashboard/` so Vite can load it.
->
-> Also make sure your Firebase API key allows `http://localhost/*` as an HTTP referrer in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), otherwise local development will be blocked.
+> [!NOTE] 
+> Make sure your Firebase API key allows `http://localhost/*` as an HTTP referrer in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), otherwise local development will be blocked.
+
+Run all packages in dev mode:
+
+```bash
+pnpm turbo dev
+```
+
+Each package has its own dev port. The dashboard proxies the other packages so that base paths resolve correctly during local development.
 
 ## Usage and license
 
