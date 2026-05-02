@@ -1,26 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // User profiles: owner-only access
+
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Progress records: user owns their own progress
-    // Check resource.data.userId instead of parsing doc ID
     match /progress/{progressId} {
-      allow read, write: if request.auth != null
-        && request.auth.uid == resource.data.userId;
+      // resource is null when the document doesn't exist — must guard against it
+      allow read: if request.auth != null && (
+        resource == null ||
+        request.auth.uid == resource.data.userId
+      );
+      allow write: if request.auth != null && (
+        resource == null
+          ? request.auth.uid == request.resource.data.userId
+          : request.auth.uid == resource.data.userId
+      );
     }
 
-    // Curriculum: public read, no client-side writes
     match /curriculum/{document=**} {
       allow read: if true;
       allow write: if false;
     }
 
-    // High scores: user can read/write their own, only higher scores allowed
     match /highScores/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if request.auth != null && request.auth.uid == userId
