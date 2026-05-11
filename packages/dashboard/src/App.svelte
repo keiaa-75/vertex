@@ -11,9 +11,9 @@
         startProgressMonitor,
         stopProgressMonitor,
         auth,
+        sendPasswordResetEmail,
         type Topic,
     } from "@vertex/shared";
-    import { sendPasswordResetEmail } from "firebase/auth";
     import ProfileForm from "./ProfileForm.svelte";
     import TopicList from "./components/TopicList.svelte";
     import TopicDetailView from "./components/TopicDetailView.svelte";
