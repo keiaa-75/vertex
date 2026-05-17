@@ -5,7 +5,7 @@ The student-facing dashboard. Handles authentication, profile setup, curriculum 
 ## Responsibilities
 
 - Email/password sign-up and sign-in via Firebase Authentication
-- Profile setup form (full name, student number, section) written to Firestore
+- Profile setup form (full name, student number) written to Firestore
 - Fetches the full curriculum from Firestore on mount
 - Subscribes to the student's progress collection with `onSnapshot` and reflects changes in real time
 - Displays topics and lessons with visual progress states: unviewed, in-progress, completed
